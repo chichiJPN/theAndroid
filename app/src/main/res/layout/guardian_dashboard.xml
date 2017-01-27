@@ -1,0 +1,381 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" >
+
+            <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:app="http://schemas.android.com/apk/res-auto"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:paddingBottom="15dp"
+            android:paddingLeft="20dp"
+            android:paddingRight="20dp"
+            android:paddingTop="40dp"
+            android:orientation="vertical"
+            android:background="@drawable/tasks_background" >
+
+            <LinearLayout
+                android:id="@+id/LinearLayout4"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_gravity="center"
+                android:gravity="center"
+                android:paddingTop="15sp"
+                android:paddingRight="15sp"
+                android:paddingLeft="15sp"
+                android:background="#FFFFFF">
+                <LinearLayout
+                    android:id="@+id/LinearLayout5"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:weightSum="10"
+                    android:layout_marginBottom="10sp">
+
+
+                    <ImageView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        app:srcCompat="@drawable/pic1"
+                        android:id="@+id/imageView6"
+                        android:layout_weight="3" />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:text="John's Performance"
+                        android:textSize="30sp"
+                        android:id="@+id/enableText3"
+                        android:layout_gravity="center"
+                        android:layout_weight="7" />
+                </LinearLayout>
+                <LinearLayout
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:weightSum="10"
+                    android:layout_marginBottom="10sp">
+
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:text="REWARD:"
+                        android:textSize="14sp"
+                        android:layout_gravity="center"
+                        android:gravity="right"
+                        android:layout_weight="4" />
+                    <ProgressBar
+                        style="?android:attr/progressBarStyleHorizontal"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:paddingLeft="10sp"
+                        android:paddingRight="10sp"
+                        android:layout_weight="6"
+                    />
+                </LinearLayout>
+                <LinearLayout
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:weightSum="10"
+                    android:layout_marginBottom="10sp">
+
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:text="Consequence:"
+                        android:textSize="14sp"
+                        android:layout_gravity="center"
+                        android:gravity="right"
+                        android:layout_weight="4" />
+                    <ProgressBar
+                        style="?android:attr/progressBarStyleHorizontal"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:paddingLeft="10sp"
+                        android:paddingRight="10sp"
+                        android:layout_weight="6"
+                        />
+                </LinearLayout>
+                <!-- Reminder part -->
+                <TextView
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:text="REMINDER"
+                    android:paddingTop="5sp"
+                    android:paddingBottom="5sp"
+                    android:paddingLeft="15sp"
+                    android:background="#66929d"
+                    android:textSize="20sp"
+                    android:ems="10"
+                    android:id="@+id/TextView"
+                    android:layout_gravity="center" />
+                <LinearLayout
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_gravity="center"
+                    android:gravity="center"
+                    android:background="#FFFFFF">
+                    <LinearLayout
+                        android:layout_width="fill_parent"
+                        android:layout_height="60sp"
+                        android:orientation="horizontal"
+                        android:weightSum="13"
+                        android:paddingLeft="10dp"
+                        android:paddingTop="10sp"
+                        android:paddingBottom="10sp"
+                        android:background="@drawable/performance_reminder_border">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:text="DO HOME CHORES"
+                            android:ems="10"
+                            android:textSize="15sp"
+                            android:gravity="center"
+                            android:layout_gravity="center"
+                            android:layout_weight="5" />
+
+                        <ProgressBar
+                            style="?android:attr/progressBarStyleHorizontal"
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="5"
+                            />
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:text="10%"
+                            android:textSize="20sp"
+                            android:ems="10"
+                            android:layout_weight="3"
+                            android:gravity="center"
+                            android:layout_gravity="center" />
+
+
+                    </LinearLayout>
+                    <LinearLayout
+                        android:layout_width="fill_parent"
+                        android:layout_height="60sp"
+                        android:orientation="horizontal"
+                        android:weightSum="13"
+                        android:paddingLeft="10dp"
+                        android:paddingTop="10sp"
+                        android:paddingBottom="10sp"
+                        android:background="@drawable/performance_reminder_border">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:text="DO HOME CHORES"
+                            android:ems="10"
+                            android:textSize="15sp"
+                            android:gravity="center"
+                            android:layout_gravity="center"
+                            android:layout_weight="5" />
+
+                        <ProgressBar
+                            style="?android:attr/progressBarStyleHorizontal"
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="5"
+                            />
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:text="10%"
+                            android:textSize="20sp"
+                            android:ems="10"
+                            android:layout_weight="3"
+                            android:gravity="center"
+                            android:layout_gravity="center" />
+
+
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- Tasks part -->
+                <TextView
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:text="TASKS"
+                    android:paddingTop="5sp"
+                    android:paddingBottom="5sp"
+                    android:paddingLeft="15sp"
+                    android:background="#69a29e"
+                    android:textSize="20sp"
+                    android:ems="10"
+                    android:layout_gravity="center" />
+                <LinearLayout
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_gravity="center"
+                    android:gravity="center"
+                    android:background="#FFFFFF">
+                    <LinearLayout
+                        android:layout_width="fill_parent"
+                        android:layout_height="60sp"
+                        android:orientation="horizontal"
+                        android:weightSum="13"
+                        android:paddingLeft="10dp"
+                        android:paddingTop="10sp"
+                        android:paddingBottom="10sp"
+                        android:background="@drawable/performance_reminder_border">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:text="DO HOME CHORES"
+                            android:ems="10"
+                            android:textSize="15sp"
+                            android:gravity="center"
+                            android:layout_gravity="center"
+                            android:layout_weight="5" />
+
+                        <ProgressBar
+                            style="?android:attr/progressBarStyleHorizontal"
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="5"
+                            />
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:text="10%"
+                            android:textSize="20sp"
+                            android:ems="10"
+                            android:layout_weight="3"
+                            android:gravity="center"
+                            android:layout_gravity="center" />
+
+
+                    </LinearLayout>
+                    <LinearLayout
+                        android:layout_width="fill_parent"
+                        android:layout_height="60sp"
+                        android:orientation="horizontal"
+                        android:weightSum="13"
+                        android:paddingLeft="10dp"
+                        android:paddingTop="10sp"
+                        android:paddingBottom="10sp"
+                        android:background="@drawable/performance_reminder_border">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:text="DO HOME CHORES"
+                            android:ems="10"
+                            android:textSize="15sp"
+                            android:gravity="center"
+                            android:layout_gravity="center"
+                            android:layout_weight="5" />
+
+                        <ProgressBar
+                            style="?android:attr/progressBarStyleHorizontal"
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="5"
+                            />
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:text="10%"
+                            android:textSize="20sp"
+                            android:ems="10"
+                            android:layout_weight="3"
+                            android:gravity="center"
+                            android:layout_gravity="center" />
+
+
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- Steps Taken-->
+
+                <TextView
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:text="STEPS TAKEN"
+                    android:paddingTop="5sp"
+                    android:paddingBottom="5sp"
+                    android:paddingLeft="15sp"
+                    android:background="#9986cf"
+                    android:textSize="20sp"
+                    android:ems="10"
+                    android:layout_gravity="center" />
+                <LinearLayout
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_gravity="center"
+                    android:gravity="center"
+                    android:background="#FFFFFF">
+                    <LinearLayout
+                        android:layout_width="fill_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:weightSum="13"
+                        android:paddingLeft="10dp"
+                        android:paddingTop="10sp"
+                        android:paddingBottom="10sp"
+                        android:background="@drawable/performance_reminder_border">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:text="2000STEPS PER DAY"
+                            android:ems="10"
+                            android:textSize="15sp"
+                            android:gravity="center"
+                            android:layout_gravity="center"
+                            android:layout_weight="5" />
+
+                        <ProgressBar
+                            style="?android:attr/progressBarStyleHorizontal"
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="5"
+                            />
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:text="10%"
+                            android:textSize="20sp"
+                            android:ems="10"
+                            android:layout_weight="3"
+                            android:gravity="center"
+                            android:layout_gravity="center" />
+
+
+                    </LinearLayout>
+                </LinearLayout>
+
+            </LinearLayout>
+
+        </LinearLayout>
+    </ScrollView>
+
+    <ImageView
+        android:src="@drawable/dashboard_plus"
+        android:id="@+id/btn_add_assignment"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:layout_gravity="bottom|right"
+        android:paddingRight="10dp"
+        android:paddingBottom="10dp"
+        android:minHeight="60dp"
+        android:minWidth="60dp"
+        />
+
+</FrameLayout>
+

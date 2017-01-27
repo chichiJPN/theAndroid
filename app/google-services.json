@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "632386080869",
+    "firebase_url": "https://virtualnanny-129e5.firebaseio.com",
+    "project_id": "virtualnanny-129e5",
+    "storage_bucket": "virtualnanny-129e5.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:632386080869:android:ce661c4618484905",
+        "android_client_info": {
+          "package_name": "team.virtualnanny"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "632386080869-dtksslougemjl00fl9pqj49lt8nvboh7.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "team.virtualnanny",
+            "certificate_hash": "7EE9AEE49610F51D5440F7681AE8D4985E067591"
+          }
+        },
+        {
+          "client_id": "632386080869-rm19nk77c65gil5vrlirrc8697aogi55.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCDUUOk4QgX7DZpS1Yl-MqTLWVwzZxCC6s"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "632386080869-rm19nk77c65gil5vrlirrc8697aogi55.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    >
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingBottom="15dp"
+        android:paddingLeft="20dp"
+        android:paddingRight="20dp"
+        android:paddingTop="40dp"
+        android:orientation="vertical"
+    >
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Assignement Name:"
+            android:textSize="14sp"
+            android:layout_gravity="left"
+            android:layout_marginBottom="10sp"
+            />
+
+        <EditText
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:hint="Enter name"
+            android:ems="10"
+            android:id="@+id/editText_assignmentName"
+            android:layout_marginBottom="10sp"
+            />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Select Assignment Options:"
+            android:textSize="14sp"
+            android:layout_gravity="left"
+            android:layout_marginBottom="10sp"
+            />
+
+
+        <Spinner
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/spinner_assignmentOption"
+            android:layout_marginBottom="10sp"
+            android:background="#FFFFFF"
+            />
+
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Date Start:"
+            android:textSize="14sp"
+            android:layout_gravity="left"
+            android:layout_marginBottom="10sp"
+            />
+
+        <DatePicker
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/datePicker_startDate"
+            android:calendarViewShown="false"
+            android:spinnersShown="true"
+            android:layout_marginBottom="10sp"
+            />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Date End:"
+            android:textSize="14sp"
+            android:layout_gravity="left"
+            android:layout_marginBottom="10sp"
+            />
+
+        <DatePicker
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10sp"
+            android:id="@+id/datePicker_endDate" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Add Consequence:"
+            android:textSize="14sp"
+            android:layout_gravity="left"
+            android:layout_marginBottom="10sp"
+            />
+
+        <EditText
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:hint="Consequence"
+            android:ems="10"
+            android:id="@+id/editText_consequence"
+            android:layout_marginBottom="10sp"
+            />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Add Reward:"
+            android:textSize="14sp"
+            android:layout_gravity="left"
+            android:layout_marginBottom="10sp"
+            />
+
+        <EditText
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:hint="Reward"
+            android:ems="10"
+            android:id="@+id/editText_reward"
+            android:layout_marginBottom="10sp"
+            />
+
+        <Button
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:hint="Set"
+            android:ems="10"
+            android:id="@+id/btn_set"
+            android:layout_marginBottom="10sp"
+        />
+    </LinearLayout>
+
+</ScrollView>

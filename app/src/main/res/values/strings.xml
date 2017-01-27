@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">Virtual Nanny</string>
+    <string-array name="genders">
+        <item>Male</item>
+        <item>Female</item>
+    </string-array>
+    <string name="title_activity_test__maps">Map</string>
+    <string name="fence_safezone">Safe Zone</string>
+    <string name="fence_dangerzone">Danger Zone</string>
+</resources>

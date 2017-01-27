@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:paddingLeft="30dp"
+    android:paddingRight="30dp"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    android:orientation="vertical"
+    android:weightSum="7">
+    <!--    android:background="@color/colorDefault" -->
+
+        <LinearLayout
+            android:id="@+id/LinearLayout4"
+            android:layout_width="fill_parent"
+            android:layout_height="80sp"
+            android:orientation="horizontal"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:layout_weight="1"
+            android:weightSum="10">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Receive notification when entering leaving the zone"
+                    android:ems="10"
+                    android:id="@+id/enableText"
+                    android:gravity="center"
+                    android:layout_weight="5" />
+
+<!--            android:textColor="@android:color/white" -->
+
+                <Switch
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/switch_enable"
+                    android:layout_weight="5" />
+        </LinearLayout>
+    <Spinner
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/spinner_fences"
+        android:gravity="center"
+        android:paddingTop="20px"
+        android:paddingBottom="20px"
+        android:background="#FFFFFF"
+        android:layout_weight="1" />
+
+    <TimePicker
+        android:id="@+id/timePicker1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:timePickerMode="spinner"
+        android:layout_gravity="center"
+        android:layout_weight="1" >
+    </TimePicker>
+
+    <LinearLayout
+        android:id="@+id/LinearLayout7"
+        android:layout_width="fill_parent"
+        android:layout_height="30sp"
+        android:orientation="horizontal"
+        android:layout_weight="1"
+        android:weightSum="10">
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:srcCompat="@drawable/refresh_black"
+            android:id="@+id/imageView3"
+            android:layout_weight="3" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Repeat"
+            android:ems="10"
+            android:id="@+id/repeatText"
+            android:gravity="center"
+            android:layout_weight="7" />
+<!--        android:textColor="@android:color/white" -->
+    </LinearLayout>
+    <LinearLayout
+        android:id="@+id/LinearLayout8"
+        android:layout_width="fill_parent"
+        android:layout_height="80sp"
+        android:orientation="horizontal"
+        android:layout_weight="1"
+        android:weightSum="7">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="S"
+            android:ems="10"
+            android:id="@+id/repeatSunday"
+            android:gravity="center"
+            android:layout_weight="1" />
+<!--        android:textColor="@android:color/white" -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="M"
+            android:ems="10"
+            android:id="@+id/repeatMonday"
+            android:gravity="center"
+            android:layout_weight="1" />
+<!--                android:textColor="@android:color/white"  -->
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="T"
+            android:ems="10"
+            android:id="@+id/repeatTuesday"
+            android:gravity="center"
+            android:layout_weight="1" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="W"
+            android:ems="10"
+            android:id="@+id/repeatWednesday"
+            android:gravity="center"
+            android:layout_weight="1" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="T"
+            android:ems="10"
+            android:id="@+id/repeatThursday"
+            android:gravity="center"
+            android:layout_weight="1" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="F"
+            android:ems="10"
+            android:id="@+id/repeatFriday"
+            android:gravity="center"
+            android:layout_weight="1" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="S"
+            android:ems="10"
+            android:id="@+id/repeatSaturday"
+            android:gravity="center"
+            android:layout_weight="1" />
+    </LinearLayout>
+
+    <Button
+        android:text="Set"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/btn_set"
+        android:layout_weight="1" />
+</LinearLayout>
