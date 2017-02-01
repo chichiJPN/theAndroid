@@ -20,7 +20,8 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
-
+import com.google.firebase.auth.FirebaseUser;
+asdasdsaasdasdsdsadasd
 
 public class RegisterAccountActivity extends AppCompatActivity {
 
@@ -30,6 +31,23 @@ public class RegisterAccountActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        mAuth = FirebaseAuth.getInstance();
+        mAuthListener = new FirebaseAuth.AuthStateListener() {
+            @Override
+            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
+                FirebaseUser user = firebaseAuth.getCurrentUser();
+                if (user != null) {
+                    // User is signed in
+                    Log.d("Main", "onAuthStateChanged:signed_in:" + user.getUid());
+                } else {
+                    // User is signed out
+                    Log.d("Main", "onAuthStateChanged:signed_out");
+                }
+            }
+        };
+
+
         setContentView(R.layout.register_account);
         setTitle("Register a new account");
         getSupportActionBar().setDisplayHomeAsUpEnabled(true); // enables back button on the action bar
@@ -39,9 +57,12 @@ public class RegisterAccountActivity extends AppCompatActivity {
         btn_register.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(getApplicationContext(), "Register Button Clicked",
-                        Toast.LENGTH_SHORT).show();
-                onBackPressed();
+				EditText editText_firstName = (EditText) findViewById(R.id.editText_firstName);
+				EditText editText_lastName = (EditText) findViewById(R.id.editText_firstName);
+				EditText editText_email = (EditText) findViewById(R.id.editText_firstName);
+				EditText editText_phone = (EditText) findViewById(R.id.editText_firstName);
+				EditText editText_firstName = (EditText) findViewById(R.id.editText_firstName);
+				EditText editText_firstName = (EditText) findViewById(R.id.editText_firstName);
                 String email = "";
                 String password = "";
                 mAuth.createUserWithEmailAndPassword(email, password)

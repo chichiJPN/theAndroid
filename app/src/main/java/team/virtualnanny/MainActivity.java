@@ -38,7 +38,6 @@ public class MainActivity extends AppCompatActivity {
                     // User is signed out
                     Log.d("Main", "onAuthStateChanged:signed_out");
                 }
-                // ...
             }
         };
 
