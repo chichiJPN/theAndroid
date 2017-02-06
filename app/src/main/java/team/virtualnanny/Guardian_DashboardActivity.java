@@ -20,6 +20,15 @@ public class Guardian_DashboardActivity extends AppCompatActivity {
         setTitle("Performance");
         getSupportActionBar().setDisplayHomeAsUpEnabled(true); // enables back button on the action bar
         getSupportActionBar().setBackgroundDrawable(new ColorDrawable(0xFF000000)); // sets the actions bar as black
+        ImageView profpic = (ImageView) findViewById(R.id.profpic);
+        TextView profpic_description = (TextView) findViewById(R.id.profpic_description);
+        ProgressBar progressbar_consequence = (ProgressBar) findViewById(R.id.progressbar_consequence);
+        ProgressBar progressbar_reward = (ProgressBar) findViewById(R.id.progressbar_reward);
+        LinearLayout remind_container = (LinearLayout) findViewById(R.id.remind_container);
+        LinearLayout tasks_container = (LinearLayout) findViewById(R.id.tasks_container);
+        LinearLayout steps_taken_container = (LinearLayout) findViewById(R.id.steps_taken_container);
+		
+		
         ImageView btn_add_assignment = (ImageView) findViewById(R.id.btn_add_assignment);
 
         btn_add_assignment.setOnClickListener(new View.OnClickListener() {

@@ -34,7 +34,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 app:srcCompat="@drawable/pic1"
-                android:id="@+id/imageView6"
+                android:id="@+id/prof_pic"
                 android:layout_weight="4" />
 
             <TextView
@@ -42,34 +42,7 @@
                 android:layout_height="wrap_content"
                 android:text="John's tasks"
                 android:textSize="30sp"
-                android:id="@+id/enableText3"
-                android:layout_gravity="center"
-                android:layout_weight="6" />
-        </LinearLayout>
-        <LinearLayout
-            android:id="@+id/LinearLayout7"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:weightSum="10"
-            android:layout_marginBottom="10sp">
-
-
-            <ImageView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                app:srcCompat="@drawable/add32x32"
-                android:id="@+id/imageView7"
-                android:layout_gravity="center"
-                android:layout_weight="4" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Add a task"
-                android:ems="10"
-                android:id="@+id/enableText4"
-                android:gravity="left"
+                android:id="@+id/pic_description"
                 android:layout_gravity="center"
                 android:layout_weight="6" />
         </LinearLayout>
@@ -83,12 +56,12 @@
             android:background="#68949e"
             android:textSize="20sp"
             android:ems="10"
-            android:id="@+id/TextView"
             android:layout_gravity="center" />
         <LinearLayout
             android:layout_width="fill_parent"
             android:layout_height="40sp"
             android:orientation="horizontal"
+            android:id="@+id/task_container"
             android:weightSum="13">
 
             <TextView

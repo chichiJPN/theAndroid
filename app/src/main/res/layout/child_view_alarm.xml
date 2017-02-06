@@ -39,7 +39,7 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         app:srcCompat="@drawable/pic1"
-                        android:id="@+id/imageView6"
+                        android:id="@+id/prof_pic"
                         android:layout_weight="3" />
 
                     <TextView
@@ -47,7 +47,7 @@
                         android:layout_height="wrap_content"
                         android:text="John's Performance"
                         android:textSize="30sp"
-                        android:id="@+id/enableText3"
+                        android:id="@+id/prof_description"
                         android:layout_gravity="center"
                         android:layout_weight="7" />
                 </LinearLayout>
@@ -74,6 +74,7 @@
                         android:paddingLeft="10sp"
                         android:paddingRight="10sp"
                         android:layout_weight="6"
+                        android:id="@+id/reward_progressbar"
                         />
                 </LinearLayout>
                 <LinearLayout
@@ -82,8 +83,6 @@
                     android:orientation="horizontal"
                     android:weightSum="10"
                     android:layout_marginBottom="10sp">
-
-
                     <TextView
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
@@ -98,6 +97,7 @@
                         android:layout_height="match_parent"
                         android:paddingLeft="10sp"
                         android:paddingRight="10sp"
+                        android:id="@+id/consequence_progressbar"
                         android:layout_weight="6"
                         />
                 </LinearLayout>
@@ -120,6 +120,7 @@
                     android:orientation="vertical"
                     android:layout_gravity="center"
                     android:gravity="center"
+					android:id="@+id/reminder_container"
                     android:background="#FFFFFF">
                     <LinearLayout
                         android:layout_width="fill_parent"
@@ -217,6 +218,7 @@
                     android:orientation="vertical"
                     android:layout_gravity="center"
                     android:gravity="center"
+					android:id="@+id/tasks_container"
                     android:background="#FFFFFF">
                     <LinearLayout
                         android:layout_width="fill_parent"
@@ -323,7 +325,8 @@
                         android:weightSum="13"
                         android:paddingLeft="10dp"
                         android:paddingTop="10sp"
-                        android:paddingBottom="10sp"
+						android:id="@+id/steps_taken_container"
+						android:paddingBottom="10sp"
                         android:background="@drawable/performance_reminder_border">
 
                         <TextView

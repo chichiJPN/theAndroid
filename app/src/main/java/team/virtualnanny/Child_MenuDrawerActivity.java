@@ -25,6 +25,11 @@ public class Child_MenuDrawerActivity extends AppCompatActivity {
         getSupportActionBar().setDisplayHomeAsUpEnabled(true); // enables back button on the action bar
         getSupportActionBar().setBackgroundDrawable(new ColorDrawable(0xFF000000)); // sets the actions bar as black
 
+		
+		
+		ImageView profile_child = (ImageView) findViewById(R.id.profile_child);
+
+		
         LinearLayout profileBar = (LinearLayout) findViewById(R.id.profileBar) ;
 
         profileBar.setOnClickListener(new View.OnClickListener() {
@@ -88,17 +93,18 @@ public class Child_MenuDrawerActivity extends AppCompatActivity {
                 Toast.makeText(getApplicationContext(), Slecteditem, Toast.LENGTH_SHORT).show();
             }
         });
-        findViewById(R.id.android_layout).setOnTouchListener(new OnSwipeTouchListener(Child_MenuDrawerActivity.this) {
+        
+		findViewById(R.id.android_layout).setOnTouchListener(new OnSwipeTouchListener(Child_MenuDrawerActivity.this) {
             public void onSwipeTop() {
             }
 
-            // left to right
-            public void onSwipeRight() {
-            }
+            public void onSwipeRight() {}
+			
             public void onSwipeLeft() {
                 onBackPressed();
                 overridePendingTransition(R.anim.right2left_enter, R.anim.right2left_exit);
             }
+			
             public void onSwipeBottom() {
             }
         });

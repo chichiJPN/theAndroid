@@ -59,30 +59,6 @@
         android:theme="@style/EditTextTheme"
         />
 
-    <RadioGroup
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
-
-        <RadioButton
-            android:text="Male"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/radioBtn_Male"
-            android:layout_weight="1"
-            android:textColor="@android:color/white"
-            />
-
-        <RadioButton
-            android:text="Female"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/radioBtn_female"
-            android:layout_weight="1"
-            android:textColor="@android:color/white"
-
-            />
-    </RadioGroup>
 
     <EditText
         android:layout_width="match_parent"
@@ -95,62 +71,11 @@
         android:textColor="@android:color/white"
         android:theme="@style/EditTextTheme" />
 
-    <EditText
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:inputType="textPersonName"
-        android:ems="10"
-        android:id="@+id/editText_username"
-        android:hint="User Name"
-        android:gravity="center_horizontal"
-        android:textColor="@android:color/white"
-        android:theme="@style/EditTextTheme" />
-
-    <EditText
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:inputType="textPassword"
-        android:ems="10"
-        android:id="@+id/editText_password"
-        android:hint="Password"
-        android:gravity="center_horizontal"
-        android:textColor="@android:color/white"
-        android:theme="@style/EditTextTheme" />
-
-    <RadioGroup
-        android:layout_width="match_parent"
-        android:layout_height="45dp"
-        android:orientation="horizontal" >
-
-        <RadioButton
-            android:text="Parent"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/radioBtn_parent"
-            android:layout_weight="1"
-            android:textColor="@android:color/white" />
-
-        <RadioButton
-            android:text="Child"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/radioBtn_child"
-            android:layout_weight="1"
-            android:textColor="@android:color/white" />
-    </RadioGroup>
-
-    <CheckBox
-        android:text="I agree to Virtual Nanny Terms of Service and Service Policy"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/checkBox_terms"
-        android:textColor="@android:color/white" />
-
     <Button
-        android:text="Register"
+        android:text="Save Changes"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/btn_register" />
+        android:id="@+id/btn_save_changes" />
 
 
 </LinearLayout>

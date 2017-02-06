@@ -20,9 +20,9 @@ public class Child_ProfileActivity extends AppCompatActivity {
         getSupportActionBar().setDisplayHomeAsUpEnabled(false); // enables back button on the action bar
         getSupportActionBar().setBackgroundDrawable(new ColorDrawable(0xFF125687)); // sets the actions bar as black
 
-
         ImageView userImage = (ImageView) findViewById(R.id.user_image);
-
+        TextView user_name = (TextView) findViewById(R.id.user_name);
+        LinearLayout parent_row = (LinearLayout) findViewById(R.id.parent_row);
 
         userImage.setOnClickListener(new View.OnClickListener() {
             @Override

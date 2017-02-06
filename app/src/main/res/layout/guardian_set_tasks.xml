@@ -11,7 +11,6 @@
     android:background="@drawable/tasks_background" >
 
     <LinearLayout
-        android:id="@+id/LinearLayout4"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
@@ -22,7 +21,6 @@
         android:paddingLeft="15sp"
         android:background="#FFFFFF">
         <LinearLayout
-            android:id="@+id/LinearLayout5"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
@@ -34,7 +32,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 app:srcCompat="@drawable/pic1"
-                android:id="@+id/imageView6"
+                android:id="@+id/profPic"
                 android:layout_weight="4" />
 
             <TextView
@@ -42,12 +40,11 @@
                 android:layout_height="wrap_content"
                 android:text="John's tasks"
                 android:textSize="30sp"
-                android:id="@+id/enableText3"
+                android:id="@+id/ownerDescription"
                 android:layout_gravity="center"
                 android:layout_weight="6" />
         </LinearLayout>
         <LinearLayout
-            android:id="@+id/LinearLayout7"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
@@ -59,7 +56,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 app:srcCompat="@drawable/add32x32"
-                android:id="@+id/imageView7"
+                android:id="@+id/btn_add_task"
                 android:layout_gravity="center"
                 android:layout_weight="4" />
 
@@ -68,8 +65,8 @@
                 android:layout_height="wrap_content"
                 android:text="Add a task"
                 android:ems="10"
-                android:id="@+id/enableText4"
                 android:gravity="left"
+                android:id="@+id/btn_add_task_text"
                 android:layout_gravity="center"
                 android:layout_weight="6" />
         </LinearLayout>
@@ -83,10 +80,8 @@
             android:background="#68949e"
             android:textSize="20sp"
             android:ems="10"
-            android:id="@+id/TextView"
             android:layout_gravity="center" />
         <LinearLayout
-            android:id="@+id/LinearLayout8"
             android:layout_width="fill_parent"
             android:layout_height="40sp"
             android:orientation="horizontal"
@@ -98,7 +93,6 @@
                 android:text="DO HOME CHORES"
                 android:ems="10"
                 android:textSize="15sp"
-                android:id="@+id/enableText6"
                 android:gravity="center"
                 android:layout_gravity="center"
                 android:layout_weight="3" />
@@ -107,7 +101,6 @@
                 android:layout_width="wrap_content"
                 android:layout_height="64px"
                 app:srcCompat="@drawable/edit_blue_64x64"
-                android:id="@+id/imageView10"
                 android:layout_gravity="center"
                 android:layout_weight="3" />
 
@@ -116,7 +109,6 @@
                 android:layout_width="wrap_content"
                 android:layout_height="64px"
                 app:srcCompat="@drawable/edit_blue_64x64"
-                android:id="@+id/imageView8"
                 android:layout_gravity="center"
                 android:layout_weight="3" />
 
@@ -124,7 +116,6 @@
                 android:layout_width="wrap_content"
                 android:layout_height="64px"
                 app:srcCompat="@drawable/trash_blue_64x64"
-                android:id="@+id/imageView9"
                 android:layout_gravity="center"
                 android:layout_weight="3" />
 

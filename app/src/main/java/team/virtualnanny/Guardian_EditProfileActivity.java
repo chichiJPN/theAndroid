@@ -20,8 +20,13 @@ public class Guardian_EditProfileActivity extends AppCompatActivity {
         getSupportActionBar().setDisplayHomeAsUpEnabled(true); // enables back button on the action bar
         getSupportActionBar().setBackgroundDrawable(new ColorDrawable(0xFF000000)); // sets the actions bar as black
 
-        Button btn_register = (Button) findViewById(R.id.btn_register);
-        btn_register.setOnClickListener(new View.OnClickListener() {
+        EditText editText_lastName = (EditText) findViewById(R.id.editText_lastName);
+        EditText editText_email = (EditText) findViewById(R.id.editText_email);
+        EditText editText_phone = (EditText) findViewById(R.id.editText_phone);
+        EditText editText_birthdate = (EditText) findViewById(R.id.editText_birthdate);
+		
+        Button btn_savechanges = (Button) findViewById(R.id.btn_savechanges);
+        btn_savechanges.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Toast.makeText(getApplicationContext(), "Register Button Clicked",

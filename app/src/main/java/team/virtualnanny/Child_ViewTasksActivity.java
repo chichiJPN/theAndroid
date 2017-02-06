@@ -16,6 +16,11 @@ public class Child_ViewTasksActivity extends AppCompatActivity {
         setTitle("Tasks");
         getSupportActionBar().setDisplayHomeAsUpEnabled(true); // enables back button on the action bar
         getSupportActionBar().setBackgroundDrawable(new ColorDrawable(0xFF000000)); // sets the actions bar as black
+		
+        ImageView prof_pic = (ImageView) findViewById(R.id.prof_pic);
+        TextView pic_description = (TextView) findViewById(R.id.pic_description);
+        LinearLayout task_container = (LinearLayout) findViewById(R.id.task_container);
+		
     }
 
     @Override

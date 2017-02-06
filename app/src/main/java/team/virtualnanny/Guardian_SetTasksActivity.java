@@ -18,6 +18,12 @@ public class Guardian_SetTasksActivity extends AppCompatActivity {
         setTitle("Tasks");
         getSupportActionBar().setDisplayHomeAsUpEnabled(true); // enables back button on the action bar
         getSupportActionBar().setBackgroundDrawable(new ColorDrawable(0xFF000000)); // sets the actions bar as black
+		
+		ImageView profPic = (ImageView) findViewById(R.id.profPic);
+		TextView ownerDescription = (TextView) findViewById(R.id.ownerDescription);
+		ImageView btn_add_task = (ImageView) findViewById(R.id.btn_add_task);
+		TextView btn_add_task_text = (TextView) findViewById(R.id.btn_add_task_text);
+
     }
 
     @Override

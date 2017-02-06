@@ -58,11 +58,17 @@ public class RegisterAccountActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 				EditText editText_firstName = (EditText) findViewById(R.id.editText_firstName);
-				EditText editText_lastName = (EditText) findViewById(R.id.editText_firstName);
-				EditText editText_email = (EditText) findViewById(R.id.editText_firstName);
-				EditText editText_phone = (EditText) findViewById(R.id.editText_firstName);
-				EditText editText_firstName = (EditText) findViewById(R.id.editText_firstName);
-				EditText editText_firstName = (EditText) findViewById(R.id.editText_firstName);
+				EditText editText_lastName = (EditText) findViewById(R.id.editText_lastName);
+				EditText editText_email = (EditText) findViewById(R.id.editText_email);
+				EditText editText_phone = (EditText) findViewById(R.id.editText_editText_phone);
+				RadioButton radioBtn_Male = (RadioButton) findViewById(R.id.radioBtn_Male);
+				RadioButton radioBtn_female = (RadioButton) findViewById(R.id.radioBtn_female);
+				EditText editText_username = (EditText) findViewById(R.id.editText_username);
+				EditText editText_password = (EditText) findViewById(R.id.editText_password);
+				RadioButton radioBtn_parent = (RadioButton) findViewById(R.id.radioBtn_parent);
+				RadioButton radioBtn_child = (RadioButton) findViewById(R.id.radioBtn_child);
+				Checkbox checkBox_terms = (Checkbox) findViewById(R.id.checkBox_terms);
+				
                 String email = "";
                 String password = "";
                 mAuth.createUserWithEmailAndPassword(email, password)

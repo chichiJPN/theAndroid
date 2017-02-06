@@ -20,13 +20,35 @@ public class Child_EditProfileActivity extends AppCompatActivity {
         getSupportActionBar().setDisplayHomeAsUpEnabled(true); // enables back button on the action bar
         getSupportActionBar().setBackgroundDrawable(new ColorDrawable(0xFF000000)); // sets the actions bar as black
 
-        Button btn_register = (Button) findViewById(R.id.btn_register);
-        btn_register.setOnClickListener(new View.OnClickListener() {
+        Button btn_save_changes = (Button) findViewById(R.id.btn_save_changes);
+        btn_save_changes.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(getApplicationContext(), "Register Button Clicked",
-                        Toast.LENGTH_SHORT).show();
-                onBackPressed();
+				EditText editText_firstName = (EditText) findViewById(R.id.editText_firstName);
+				EditText editText_lastName = (EditText) findViewById(R.id.editText_lastName);
+				EditText editText_email = (EditText) findViewById(R.id.editText_email);
+				EditText editText_phone = (EditText) findViewById(R.id.editText_editText_phone);
+				
+                String email = "";
+                String password = "";
+                mAuth.createUserWithEmailAndPassword(email, password)
+                        .addOnCompleteListener(RegisterAccountActivity.this, new OnCompleteListener<AuthResult>() {
+                            @Override
+                            public void onComplete(@NonNull Task<AuthResult> task) {
+                                Log.d("Register", "createUserWithEmail:onComplete:" + task.isSuccessful());
+
+                                // If sign in fails, display a message to the user. If sign in succeeds
+                                // the auth state listener will be notified and logic to handle the
+                                // signed in user can be handled in the listener.
+                                if (!task.isSuccessful()) {
+                                    Toast.makeText(RegisterAccountActivity.this, "Authentication failed.",
+                                            Toast.LENGTH_SHORT).show();
+                                }
+
+                                // ...
+                            }
+                        });
+
             }
         });
     }
