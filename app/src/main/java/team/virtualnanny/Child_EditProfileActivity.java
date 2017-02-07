@@ -7,10 +7,16 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.Toast;
+
+import com.google.firebase.auth.FirebaseAuth;
 
 
 public class Child_EditProfileActivity extends AppCompatActivity {
+
+    private FirebaseAuth mAuth;
+    private FirebaseAuth.AuthStateListener mAuthListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,27 +33,10 @@ public class Child_EditProfileActivity extends AppCompatActivity {
 				EditText editText_firstName = (EditText) findViewById(R.id.editText_firstName);
 				EditText editText_lastName = (EditText) findViewById(R.id.editText_lastName);
 				EditText editText_email = (EditText) findViewById(R.id.editText_email);
-				EditText editText_phone = (EditText) findViewById(R.id.editText_editText_phone);
+				EditText editText_phone = (EditText) findViewById(R.id.editText_phone);
 				
                 String email = "";
                 String password = "";
-                mAuth.createUserWithEmailAndPassword(email, password)
-                        .addOnCompleteListener(RegisterAccountActivity.this, new OnCompleteListener<AuthResult>() {
-                            @Override
-                            public void onComplete(@NonNull Task<AuthResult> task) {
-                                Log.d("Register", "createUserWithEmail:onComplete:" + task.isSuccessful());
-
-                                // If sign in fails, display a message to the user. If sign in succeeds
-                                // the auth state listener will be notified and logic to handle the
-                                // signed in user can be handled in the listener.
-                                if (!task.isSuccessful()) {
-                                    Toast.makeText(RegisterAccountActivity.this, "Authentication failed.",
-                                            Toast.LENGTH_SHORT).show();
-                                }
-
-                                // ...
-                            }
-                        });
 
             }
         });
