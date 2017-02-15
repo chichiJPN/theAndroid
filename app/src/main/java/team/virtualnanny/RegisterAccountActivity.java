@@ -1,8 +1,8 @@
 package team.virtualnanny;
 
 
+import android.content.Intent;
 import android.graphics.drawable.ColorDrawable;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
@@ -16,33 +16,77 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Toast;
 
-import com.google.android.gms.appindexing.Action;
-import com.google.android.gms.appindexing.AppIndex;
-import com.google.android.gms.appindexing.Thing;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.IgnoreExtraProperties;
+import com.google.firebase.database.ValueEventListener;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class RegisterAccountActivity extends AppCompatActivity {
 
     private FirebaseAuth mAuth;
     private FirebaseAuth.AuthStateListener mAuthListener;
+    private DatabaseReference mDatabase;
+    private String email;
+    private String password;
+    private String firstName;
+    private String lastName;
+    private String phone;
+    private String gender;
+    private String role;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+
+
+        mDatabase = FirebaseDatabase.getInstance().getReference();
         mAuth = FirebaseAuth.getInstance();
         mAuthListener = new FirebaseAuth.AuthStateListener() {
             @Override
             public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
-                FirebaseUser user = firebaseAuth.getCurrentUser();
+                final FirebaseUser user = firebaseAuth.getCurrentUser();
                 if (user != null) {
-                    // User is signed in
-                    Log.d("Main", "onAuthStateChanged:signed_in:" + user.getUid());
+                    // check if user has registered
+                    if(email != null) {
+                        Db_user dbuser = new Db_user(firstName,lastName,email,phone,gender,role);
+                        mDatabase.child("users").child(user.getUid()).setValue(dbuser);
+                    }
+
+                    FirebaseDatabase.getInstance().getReference().child("users").child(user.getUid())
+                            .addListenerForSingleValueEvent(new ValueEventListener() {
+                                @Override
+                                public void onDataChange(DataSnapshot dataSnapshot) {
+                                    Db_user dbuser = dataSnapshot.getValue(Db_user.class);
+                                    Intent intent;
+                                    if(dbuser.getRole().equals("Parent")) {
+                                        intent = new Intent(getApplicationContext(), Guardian_ChildProfileOverviewActivity.class);
+                                    } else {
+                                        intent = new Intent(getApplicationContext(), Child_ChildOverviewActivity.class);
+                                    }
+
+                                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                                    finish();
+                                    startActivity(intent);
+
+                                    Log.d("Main", "onAuthStateChanged:signed_in: user id is " + dbuser.getRole());
+                                }
+
+                                @Override
+                                public void onCancelled(DatabaseError databaseError) {
+                                }
+                            });
                 } else {
                     // User is signed out
                     Log.d("Main", "onAuthStateChanged:signed_out");
@@ -60,12 +104,17 @@ public class RegisterAccountActivity extends AppCompatActivity {
         btn_register.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
 				EditText editText_firstName = (EditText) findViewById(R.id.editText_firstName);
 				EditText editText_lastName = (EditText) findViewById(R.id.editText_lastName);
 				EditText editText_email = (EditText) findViewById(R.id.editText_email);
 				EditText editText_phone = (EditText) findViewById(R.id.editText_phone);
 				RadioGroup radiogrp_Gender = (RadioGroup) findViewById(R.id.radioGrp_gender);
                 int selectedId = radiogrp_Gender.getCheckedRadioButtonId();
+                if(selectedId == -1) {
+                    Toast.makeText(RegisterAccountActivity.this, "Please select a gender.",Toast.LENGTH_SHORT).show();
+                    return;
+                }
                 RadioButton radiobtn_gender = (RadioButton) findViewById(selectedId);
 
 
@@ -73,24 +122,45 @@ public class RegisterAccountActivity extends AppCompatActivity {
 				EditText editText_password = (EditText) findViewById(R.id.editText_password);
                 RadioGroup radioGrp_role = (RadioGroup) findViewById(R.id.radioGrp_role);
                 int roleselectedId = radioGrp_role.getCheckedRadioButtonId();
-                RadioButton radiobtn_role = (RadioButton) findViewById(selectedId);
+                if(roleselectedId == -1) {
+                    Toast.makeText(RegisterAccountActivity.this, "Please select a role.",Toast.LENGTH_SHORT).show();
+                    return;
+                }
 
+                RadioButton radiobtn_role = (RadioButton) findViewById(roleselectedId);
 				CheckBox checkBox_terms = (CheckBox) findViewById(R.id.checkBox_terms);
-//                Log.d("Main", "onAuthStateChanged:signed_in:" + user.getUid());
 
 
+                email = editText_email.getText().toString().trim();
+                password = editText_password.getText().toString().trim();
+                firstName = editText_firstName.getText().toString().trim();
+                lastName = editText_lastName.getText().toString().trim();
+                phone = editText_phone.getText().toString().trim();
+                gender = radiobtn_gender.getText().toString();
+                role = radiobtn_role.getText().toString();
+
+                if(firstName.isEmpty() || lastName.isEmpty()) {
+                    Toast.makeText(RegisterAccountActivity.this, "A name is empty.",Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                if(email.isEmpty()) {
+                    Toast.makeText(RegisterAccountActivity.this, "Email is empty.",Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                if(phone.isEmpty()) {
+                    Toast.makeText(RegisterAccountActivity.this, "Phone number is empty.",Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                if(password.isEmpty()) {
+                    Toast.makeText(RegisterAccountActivity.this, "Password is empty.",Toast.LENGTH_SHORT).show();
+                    return;
+                } else if(password.length() < 8) {
+                    Toast.makeText(RegisterAccountActivity.this, "Password needs to be 8 characters long.",Toast.LENGTH_SHORT).show();
+
+                }
 
 
-                String email = editText_email.getText().toString();
-                String password = editText_password.getText().toString();
-                String firstName = editText_firstName.getText().toString();
-                String lastName = editText_lastName.getText().toString();
-                String phone = editText_phone.getText().toString();
-                String gender = radiobtn_gender.getText().toString();
-                String username = editText_username.getText().toString();
-                String role = radiobtn_role.getText().toString();
-
-                Log.d("Register", email );
 
                 mAuth.createUserWithEmailAndPassword(email, password)
                         .addOnCompleteListener(RegisterAccountActivity.this, new OnCompleteListener<AuthResult>() {
@@ -102,11 +172,10 @@ public class RegisterAccountActivity extends AppCompatActivity {
                                 // the auth state listener will be notified and logic to handle the
                                 // signed in user can be handled in the listener.
                                 if (!task.isSuccessful()) {
+
                                     Toast.makeText(RegisterAccountActivity.this, "Authentication failed.",
                                             Toast.LENGTH_SHORT).show();
                                 }
-
-                                // ...
                             }
                         });
 

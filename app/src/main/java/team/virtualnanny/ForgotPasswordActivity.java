@@ -3,7 +3,9 @@ package team.virtualnanny;
 import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
@@ -14,6 +16,9 @@ import com.google.android.gms.appindexing.Action;
 import com.google.android.gms.appindexing.AppIndex;
 import com.google.android.gms.appindexing.Thing;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
 
 public class ForgotPasswordActivity extends AppCompatActivity {
 
@@ -31,9 +36,22 @@ public class ForgotPasswordActivity extends AppCompatActivity {
             public void onClick(View v) {
                 EditText text_email = (EditText) findViewById(R.id.editText_forgotpass_email);
 
-                Toast.makeText(getApplicationContext(), "Retrieve Button Value clicked! Email is " + text_email.getText().toString(),
-                        Toast.LENGTH_SHORT).show();
-                onBackPressed();
+                FirebaseAuth auth = FirebaseAuth.getInstance();
+                String emailAddress = text_email.getText().toString().trim();
+
+                auth.sendPasswordResetEmail(emailAddress)
+                        .addOnCompleteListener(new OnCompleteListener<Void>() {
+                            @Override
+                            public void onComplete(@NonNull Task<Void> task) {
+                                if (task.isSuccessful()) {
+                                    Log.d("Password reset", "Email sent.");
+                                    Toast.makeText(getApplicationContext(), "Password reset has been sent to mail",
+                                            Toast.LENGTH_SHORT).show();
+                                    onBackPressed();
+                                }
+                            }
+                        });
+
             }
         });
     }

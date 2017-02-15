@@ -13,6 +13,8 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import com.google.firebase.auth.FirebaseAuth;
+
 
 public class Child_MenuDrawerActivity extends AppCompatActivity {
 
@@ -85,6 +87,11 @@ public class Child_MenuDrawerActivity extends AppCompatActivity {
                     case "Add Child Account":
                         break;
                     case "Logout":
+                        FirebaseAuth.getInstance().signOut();
+                        Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                        finish();
+                        startActivity(intent);
                         break;
                     case "About Us":
                         final Intent i = new Intent(Child_MenuDrawerActivity.this, AboutUsActivity.class);

@@ -12,10 +12,16 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -32,17 +38,32 @@ public class MainActivity extends AppCompatActivity {
             public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
                 FirebaseUser user = firebaseAuth.getCurrentUser();
                 if (user != null) {
-                    // User is signed in
-                    Log.d("Main", "onAuthStateChanged:signed_in:" + user.getUid());
+                    FirebaseDatabase.getInstance().getReference().child("users").child(user.getUid())
+                        .addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(DataSnapshot dataSnapshot) {
+                                Db_user dbuser = dataSnapshot.getValue(Db_user.class);
+                                Intent intent;
+                                if(dbuser.getRole().equals("Parent")) {
+                                    intent = new Intent(getApplicationContext(), Guardian_ChildProfileOverviewActivity.class);
+                                } else {
+                                    intent = new Intent(getApplicationContext(), Child_ChildOverviewActivity.class);
+                                }
+
+                                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                                finish();
+                                startActivity(intent);
+                            }
+
+                            @Override
+                            public void onCancelled(DatabaseError databaseError) {}
+                        });
                 } else {
                     // User is signed out
                     Log.d("Main", "onAuthStateChanged:signed_out");
                 }
             }
         };
-
-        Log.d("Main", "asdasdasdas");
-
 
         setContentView(R.layout.login);
 
@@ -54,16 +75,32 @@ public class MainActivity extends AppCompatActivity {
                 EditText input_username = (EditText) findViewById(R.id.editText_username); // gets the field by ID from layout xml
                 EditText input_password = (EditText) findViewById(R.id.editText_password);
 
-                String username = input_username.getText().toString(); // gets the text from the input field and converts to string
+                String email = input_username.getText().toString(); // gets the text from the input field and converts to string
                 String password = input_password.getText().toString();
 
-                // user pass verification here
+                mAuth.signInWithEmailAndPassword(email , password)
+                        .addOnCompleteListener(MainActivity.this, new OnCompleteListener<AuthResult>() {
+                            @Override
+                            public void onComplete(@NonNull Task<AuthResult> task) {
+
+                                // If sign in fails, display a message to the user. If sign in succeeds
+                                // the auth state listener will be notified and logic to handle the
+                                // signed in user can be handled in the listener.
+                                if (!task.isSuccessful()) {
+                                    Log.w("Login", "signInWithEmail", task.getException());
+                                    Toast.makeText(MainActivity.this, "Login failed. Please ensure correct username and password",
+                                            Toast.LENGTH_SHORT).show();
+                                }
+                            }
+                        });
+
+                /*
+
                 if(username.equals("guardian")) {
                     Toast.makeText(getApplicationContext(), "Going to guardian page!",
                             Toast.LENGTH_SHORT).show();
                     final Intent i = new Intent(MainActivity.this, Guardian_ChildProfileOverviewActivity.class);
                     startActivity(i);
-
 
                 } else if(username.equals("child")){
                     final Intent i = new Intent(MainActivity.this, Child_ChildOverviewActivity.class);
@@ -75,6 +112,7 @@ public class MainActivity extends AppCompatActivity {
                             Toast.LENGTH_SHORT).show();
                 }
 
+                */
 
 
             }
@@ -104,10 +142,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        FirebaseDatabase database = FirebaseDatabase.getInstance();
-        DatabaseReference myRef = database.getReference("user/potato");
-
-        myRef.setValue("Hello, World!");
         /*
 
         Button button = (Button) findViewById(R.id.btn_dbwrite);
