@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:id="@+id/mainActivity"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:animateLayoutChanges="true">
+
+        <fragment xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:map="http://schemas.android.com/apk/res-auto"
+            xmlns:tools="http://schemas.android.com/tools"
+            android:id="@+id/map"
+            android:name="com.google.android.gms.maps.SupportMapFragment"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            tools:context="com.stepcounter.vl.stepcounter.MapsActivity"/>
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_alignParentTop="true">
+                <Button
+                    android:id="@+id/btnStartCounting"
+                    android:layout_weight="1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Start Counting"/>
+                <Button
+                    android:id="@+id/btnStopCounting"
+                    android:layout_weight="1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Stop Counting"/>
+                <Button
+                    android:id="@+id/btnShowFile"
+                    android:layout_weight="1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Show files"
+                    android:visibility="gone"/>
+
+            </LinearLayout>
+            <TextView
+                android:id="@+id/countStepsTextView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="#ECECEC"
+                android:padding="10dp"
+                android:textAlignment="center"
+                android:gravity="center"
+                android:text="counter"
+                android:layout_alignParentBottom="true"/>
+        </RelativeLayout>
+
+    </FrameLayout>
+
+
+</LinearLayout>

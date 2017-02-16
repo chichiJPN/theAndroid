@@ -3,13 +3,13 @@ package team.virtualnanny;
 public class Db_limit {
     private boolean enable;
     private int numHours;
-    private boolean Sunday;
-    private boolean Monday;
-    private boolean Tuesday;
-    private boolean Wednesday;
-    private boolean Thursday;
-    private boolean Friday;
-    private boolean Saturday;
+    private boolean sunday;
+    private boolean monday;
+    private boolean tuesday;
+    private boolean wednesday;
+    private boolean thursday;
+    private boolean friday;
+    private boolean saturday;
 
     public Db_limit() {}
 
@@ -25,13 +25,13 @@ public class Db_limit {
                     ) {
         this.enable = enable;
         this.numHours = numHours;
-        this.Sunday = Sunday;
-        this.Monday = Monday;
-        this.Tuesday = Tuesday;
-        this.Wednesday = Wednesday;
-        this.Thursday = Thursday;
-        this.Friday = Friday;
-        this.Saturday = Saturday;
+        this.sunday = Sunday;
+        this.monday = Monday;
+        this.tuesday = Tuesday;
+        this.wednesday = Wednesday;
+        this.thursday = Thursday;
+        this.friday = Friday;
+        this.saturday = Saturday;
     }
     public boolean getEnable() {
         return enable;
@@ -40,24 +40,24 @@ public class Db_limit {
         return numHours;
     }
     public boolean getSunday() {
-        return Sunday;
+        return sunday;
     }
     public boolean getMonday() {
-        return Monday;
+        return monday;
     }
     public boolean getTuesday() {
-        return Tuesday;
+        return tuesday;
     }
     public boolean getWednesday() {
-        return Wednesday;
+        return wednesday;
     }
     public boolean getThursday() {
-        return Thursday;
+        return thursday;
     }
     public boolean getFriday() {
-        return Friday;
+        return friday;
     }
     public boolean getSaturday() {
-        return Saturday;
+        return saturday;
     }
 }

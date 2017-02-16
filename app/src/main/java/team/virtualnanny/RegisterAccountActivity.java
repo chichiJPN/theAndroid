@@ -45,6 +45,7 @@ public class RegisterAccountActivity extends AppCompatActivity {
     private String phone;
     private String gender;
     private String role;
+    private String address;
     private ProgressDialog progress;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,7 +72,7 @@ public class RegisterAccountActivity extends AppCompatActivity {
                         double lastLongitude = 123.8950; // UC coordinates
                         int numSteps = 0;
                         boolean enablePhone = false;
-                        Db_user dbuser = new Db_user(firstName,lastName,email,phone,gender,role, enablePhone, lastLatitude, lastLongitude, numSteps); //adds a new user to the database
+                        Db_user dbuser = new Db_user(firstName,lastName,email,phone,gender,role,address, enablePhone, lastLatitude, lastLongitude, numSteps); //adds a new user to the database
                         mDatabase.child("users").child(user.getUid()).setValue(dbuser);
                         Db_limit dblimit = new Db_limit(false,24, false,false,false,false,false,false,false);
                         mDatabase.child("users").child(user.getUid()).child("limit").setValue(dblimit);
@@ -121,7 +122,8 @@ public class RegisterAccountActivity extends AppCompatActivity {
             public void onClick(View v) {
                 progress.show();
 				EditText editText_firstName = (EditText) findViewById(R.id.editText_firstName);
-				EditText editText_lastName = (EditText) findViewById(R.id.editText_lastName);
+                EditText editText_lastName = (EditText) findViewById(R.id.editText_lastName);
+                EditText editText_address = (EditText) findViewById(R.id.editText_address);
 				EditText editText_email = (EditText) findViewById(R.id.editText_email);
 				EditText editText_phone = (EditText) findViewById(R.id.editText_phone);
 				RadioGroup radiogrp_Gender = (RadioGroup) findViewById(R.id.radioGrp_gender);
@@ -151,6 +153,11 @@ public class RegisterAccountActivity extends AppCompatActivity {
                 phone = editText_phone.getText().toString().trim();
                 gender = radiobtn_gender.getText().toString();
                 role = radiobtn_role.getText().toString();
+                address = editText_address.getText().toString().trim();
+                if(!checkBox_terms.isChecked()) {
+                    Toast.makeText(RegisterAccountActivity.this, "Please check terms and conditions.",Toast.LENGTH_SHORT).show();
+                    return;
+                }
 
                 if(firstName.isEmpty() || lastName.isEmpty()) {
                     Toast.makeText(RegisterAccountActivity.this, "A name is empty.",Toast.LENGTH_SHORT).show();
@@ -170,7 +177,11 @@ public class RegisterAccountActivity extends AppCompatActivity {
                     return;
                 } else if(password.length() < 8) {
                     Toast.makeText(RegisterAccountActivity.this, "Password needs to be 8 characters long.",Toast.LENGTH_SHORT).show();
+                }
 
+                if(address.isEmpty()) {
+                    Toast.makeText(RegisterAccountActivity.this, "Address is empty.",Toast.LENGTH_SHORT).show();
+                    return;
                 }
 
 

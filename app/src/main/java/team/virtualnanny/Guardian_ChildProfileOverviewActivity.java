@@ -1,11 +1,13 @@
 package team.virtualnanny;
 
+import android.*;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.location.Location;
 import android.location.LocationManager;
 import android.net.Uri;
@@ -37,11 +39,15 @@ import com.google.android.gms.location.LocationSettingsRequest;
 import com.google.android.gms.location.LocationSettingsResult;
 import com.google.android.gms.location.LocationSettingsStates;
 import com.google.android.gms.location.LocationSettingsStatusCodes;
+import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.Circle;
+import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -64,8 +70,9 @@ public class Guardian_ChildProfileOverviewActivity extends FragmentActivity impl
     private FirebaseAuth.AuthStateListener mAuthListener;
     private DatabaseReference mDatabase;
     private ProgressDialog progress;
-    private String currentlySelectedUserID;
-    private String currentUserNumber;
+    private String currentlySelectedUserID = null;
+    private String currentUserNumber = null;
+    private Marker childMarker;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -90,52 +97,105 @@ public class Guardian_ChildProfileOverviewActivity extends FragmentActivity impl
             }
             }
         };
+        requestPermissionAccessLocation();
+        Intent intent = new Intent(getApplicationContext(), Guardian_Service.class);
+        startService(intent);
 
         final TextView tv_name = (TextView) findViewById(R.id.textview_name);
-        TextView tv_address = (TextView) findViewById(R.id.textview_address);
+        final TextView tv_address = (TextView) findViewById(R.id.textview_address);
+        final TextView textview_steps = (TextView) findViewById(R.id.textview_steps);
+
         final LinearLayout panel_header = (LinearLayout) findViewById(R.id.panel_header);
 
         final DatabaseReference users = mDatabase.child("users");
         final String currentUserID = mAuth.getCurrentUser().getUid();
-        users.child(currentUserID).child("children").addListenerForSingleValueEvent(new ValueEventListener() {
+        users.child(currentUserID).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                if(dataSnapshot.exists()) {
+/*                if(dataSnapshot.exists()) {
+
+                    for(DataSnapshot datasnapshot : dataSnapshot.getChildren()) {
+                        Db_fence fence = datasnapshot.getValue(Db_fence.class);
+
+                        String fenceName = datasnapshot.getKey();
+                        double fenceLatitude = fence.getLatitude();
+                        double fenceLongitude = fence.getLongitude();
+
+                        LatLng newLatLng = new LatLng(fenceLatitude, fenceLongitude);
+                        MarkerOptions markerOptions = new MarkerOptions()
+                                .position(newLatLng)
+                                .title(fenceName);
+
+                        final Marker marker = mMap.addMarker(markerOptions);
+
+                        CircleOptions circleOptions = new CircleOptions()
+                                .center(newLatLng)
+                                .strokeColor(fence.getSafety() == 1 ? Color.GREEN : Color.RED)
+                                .radius(fence.getRadius())
+                                .zIndex(20);
+                        final Circle mapCircle = mMap.addCircle(circleOptions);
+
+                        existingMarkers.add(marker);
+                        existingCircles.add(mapCircle);
+                        existingFences.add(fence);
+                    }
+                }
+*/
+
+                if(dataSnapshot.child("children").exists()) {
                     progress.show();
-                    long numChildren = dataSnapshot.getChildrenCount();
-                    for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                        String userID = snapshot.getValue().toString();
-                        Log.d("User id is ",userID);
-                        ImageView ii = new ImageView(Guardian_ChildProfileOverviewActivity.this);
-                        ii.setBackgroundResource(R.drawable.profile_child1);
-                        ii.setTag(userID);
-                        ii.setOnClickListener(new View.OnClickListener() {
+
+                    for (DataSnapshot snapshot : dataSnapshot.child("children").getChildren()) {
+
+                        final String childID = snapshot.getValue().toString();
+                        users.child(childID).child("Parent").addListenerForSingleValueEvent(new ValueEventListener() {
                             @Override
-                            public void onClick(View v) {
-                                currentlySelectedUserID = (String)v.getTag();
-                                progress.show();
-                                users.child(currentlySelectedUserID).addListenerForSingleValueEvent(new ValueEventListener() {
-                                    @Override
-                                    public void onDataChange(DataSnapshot dataSnapshot) {
-                                        Db_user user = dataSnapshot.getValue(Db_user.class);
-                                        currentUserNumber = user.getPhone();
+                            public void onDataChange(DataSnapshot parent) {
+                                if(parent.exists() && parent.getValue().toString().equals(currentUserID)) {
+                                    Log.d("User id is ",childID);
+                                    ImageView ii = new ImageView(Guardian_ChildProfileOverviewActivity.this);
+                                    ii.setBackgroundResource(R.drawable.profile_child1);
+                                    ii.setTag(childID);
+                                    ii.setOnClickListener(new View.OnClickListener() {
+                                        @Override
+                                        public void onClick(View v) {
+                                            currentlySelectedUserID = (String)v.getTag();
+                                            progress.show();
+                                            users.child(currentlySelectedUserID).addListenerForSingleValueEvent(new ValueEventListener() {
+                                                @Override
+                                                public void onDataChange(DataSnapshot dataSnapshot) {
+                                                    Db_user user = dataSnapshot.getValue(Db_user.class);
+                                                    currentUserNumber = user.getPhone();
 
-                                        String firstName = user.getFirstName();
-                                        String lastName = user.getLastName();
-                                        tv_name.setText(firstName + " "+ lastName);
+                                                    String firstName = user.getFirstName();
+                                                    String lastName = user.getLastName();
+                                                    String address = user.getAddress();
 
-                                        progress.dismiss();
-                                    }
+                                                    int numSteps = user.getNumSteps();
 
-                                    @Override
-                                    public void onCancelled(DatabaseError databaseError) {}
-                                });
+                                                    tv_name.setText(firstName + " "+ lastName);
+                                                    tv_address.setText(address);
+                                                    textview_steps.setText("" +numSteps);
+                                                    animateAndZoomToLocation(user.getLastLatitude(), user.getLastLongitude());
+                                                    childMarker.setTitle(firstName + "" + lastName);
+                                                    progress.dismiss();
+
+                                                }
+
+                                                @Override
+                                                public void onCancelled(DatabaseError databaseError) {}
+                                            });
+                                        }
+                                    });
+                                    panel_header.addView(ii);
+                                }
                             }
+
+                            @Override
+                            public void onCancelled(DatabaseError databaseError) {}
                         });
-                        panel_header.addView(ii);
                     }
                     progress.dismiss();
-
                 } else {
                     Toast.makeText(Guardian_ChildProfileOverviewActivity.this, "No Children",Toast.LENGTH_SHORT).show();
                 }
@@ -155,11 +215,13 @@ public class Guardian_ChildProfileOverviewActivity extends FragmentActivity impl
         ImageButton btn_task = (ImageButton) findViewById(R.id.btn_task);
         RelativeLayout layout = (RelativeLayout) findViewById(R.id.RelativeLayout1);
 
-
         btn_phone.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+            if(currentlySelectedUserID == null) {
+                Toast.makeText(Guardian_ChildProfileOverviewActivity.this, "Please select a child",Toast.LENGTH_SHORT).show();
+                return;
+            }
                 Uri number = Uri.parse("tel:"+ currentUserNumber);
                 Intent callIntent = new Intent(Intent.ACTION_DIAL, number);
                 startActivity(callIntent);
@@ -170,9 +232,11 @@ public class Guardian_ChildProfileOverviewActivity extends FragmentActivity impl
         btn_message.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if(currentlySelectedUserID == null) {
+                    Toast.makeText(Guardian_ChildProfileOverviewActivity.this, "Please select a child",Toast.LENGTH_SHORT).show();
+                    return;
+                }
 
-                Toast.makeText(getApplicationContext(), "Message Button Clicked!",
-                        Toast.LENGTH_SHORT).show();
                 Intent smsIntent = new Intent(Intent.ACTION_VIEW);
                 smsIntent.setType("vnd.android-dir/mms-sms");
                 smsIntent.putExtra("address", currentUserNumber);
@@ -184,43 +248,70 @@ public class Guardian_ChildProfileOverviewActivity extends FragmentActivity impl
         btn_fence.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                final Intent i = new Intent(Guardian_ChildProfileOverviewActivity.this, Guardian_SetFenceActivity.class);
-                startActivity(i);
+            if(currentlySelectedUserID == null) {
+                Toast.makeText(Guardian_ChildProfileOverviewActivity.this, "Please select a child",Toast.LENGTH_SHORT).show();
+                return;
+            }
+            final Intent i = new Intent(Guardian_ChildProfileOverviewActivity.this, Guardian_SetFenceActivity.class);
+            startActivity(i);
             }
         });
         btn_limit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                final Intent i = new Intent(Guardian_ChildProfileOverviewActivity.this, Guardian_SetLimitActivity.class);
-                startActivity(i);
+            if(currentlySelectedUserID == null) {
+                Toast.makeText(Guardian_ChildProfileOverviewActivity.this, "Please select a child",Toast.LENGTH_SHORT).show();
+                return;
+            }
+            final Intent i = new Intent(Guardian_ChildProfileOverviewActivity.this, Guardian_SetLimitActivity.class);
+            i.putExtra("userid",currentlySelectedUserID);
+
+            startActivity(i);
             }
         });
         btn_alarm.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                final Intent i = new Intent(Guardian_ChildProfileOverviewActivity.this, Guardian_SetAlarmActivity.class);
-                startActivity(i);
+            if(currentlySelectedUserID == null) {
+                Toast.makeText(Guardian_ChildProfileOverviewActivity.this, "Please select a child",Toast.LENGTH_SHORT).show();
+                return;
+            }
+            final Intent i = new Intent(Guardian_ChildProfileOverviewActivity.this, Guardian_SetAlarmActivity.class);
+            startActivity(i);
             }
         });
         btn_task.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                final Intent i = new Intent(Guardian_ChildProfileOverviewActivity.this, Guardian_SetTasksActivity.class);
-                startActivity(i);
+            if(currentlySelectedUserID == null) {
+                Toast.makeText(Guardian_ChildProfileOverviewActivity.this, "Please select a child",Toast.LENGTH_SHORT).show();
+                return;
+            }
+            final Intent i = new Intent(Guardian_ChildProfileOverviewActivity.this, Guardian_SetTasksActivity.class);
+            i.putExtra("userid",currentlySelectedUserID);
+            startActivity(i);
             }
         });
         btn_history.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(getApplicationContext(), "History Button Clicked!",
-                        Toast.LENGTH_SHORT).show();
+            if(currentlySelectedUserID == null) {
+                Toast.makeText(Guardian_ChildProfileOverviewActivity.this, "Please select a child",Toast.LENGTH_SHORT).show();
+                return;
+            }
+            Toast.makeText(getApplicationContext(), "History Button Clicked!",
+                    Toast.LENGTH_SHORT).show();
             }
         });
         btn_dashboard.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                final Intent i = new Intent(Guardian_ChildProfileOverviewActivity.this, Guardian_DashboardActivity.class);
-                startActivity(i);
+            if(currentlySelectedUserID == null) {
+                Toast.makeText(Guardian_ChildProfileOverviewActivity.this, "Please select a child",Toast.LENGTH_SHORT).show();
+                return;
+            }
+            final Intent i = new Intent(Guardian_ChildProfileOverviewActivity.this, Guardian_DashboardActivity.class);
+            startActivity(i);
             }
         });
 
@@ -252,6 +343,24 @@ public class Guardian_ChildProfileOverviewActivity extends FragmentActivity impl
         });
     }
 
+    private void animateAndZoomToLocation(double Latitude, double Longitude){
+        if(mMap == null) return;
+
+        CameraUpdate center= CameraUpdateFactory.newLatLng(new LatLng(
+                Latitude,
+                Longitude));
+        CameraUpdate zoom=CameraUpdateFactory.zoomTo(13);
+
+        if(childMarker == null) {
+            MarkerOptions markerOptions = new MarkerOptions().position(new LatLng(Latitude, Longitude)).title("Sample");
+            childMarker = mMap.addMarker(markerOptions);
+        }
+
+        childMarker.setPosition(new LatLng(Latitude, Longitude));
+        mMap.moveCamera(center);
+        mMap.animateCamera(zoom);
+    }
+
     @Override
     protected void onStart() {
         super.onStart();
@@ -265,58 +374,24 @@ public class Guardian_ChildProfileOverviewActivity extends FragmentActivity impl
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-/*
-        final LocationManager manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-
-        if (!manager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-            buildAlertMessageNoGps();
-        }
-*/
         if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             return;
         }
 
+
         mMap.setMyLocationEnabled(true);
 
-        //          LatLng sydney = new LatLng(-34, 151);
-        //           mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
-//            mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
-
     }
 
-        public void onConnected(Bundle connectionHint) {
-
-        /*
-        Location mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
-                mGoogleApiClient);
-        if (mLastLocation != null) {
-            Toast.makeText(getApplicationContext(), "Latitude: " + mLastLocation.getLatitude() + " | Longitude: " + mLastLocation.getLongitude(),
-                    Toast.LENGTH_LONG).show();
-            Log.d("Location", "Latitude: " + mLastLocation.getLatitude() + " | Longitude: " + mLastLocation.getLongitude());
-
-        }else{
-            Log.d("Location", "Location is null");
+    private void requestPermissionAccessLocation(){
+        Log.d("yes","requestPermissionAccessLocation");
+        int permissionCheck1 = ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION);
+        if (permissionCheck1 != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION }, 1234);
         }
-        */
     }
 
-    private void buildAlertMessageNoGps() {
-        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setMessage("Your GPS seems to be disabled, do you want to enable it?")
-                .setCancelable(false)
-                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                    public void onClick(final DialogInterface dialog, final int id) {
-                        startActivity(new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS));
-                    }
-                })
-                .setNegativeButton("No", new DialogInterface.OnClickListener() {
-                    public void onClick(final DialogInterface dialog, final int id) {
-                        dialog.cancel();
-                    }
-                });
-        final AlertDialog alert = builder.create();
-        alert.show();
-    }
+
 }
 
 

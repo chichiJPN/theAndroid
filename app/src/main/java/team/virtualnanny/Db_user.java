@@ -7,6 +7,7 @@ public class Db_user {
     private String phone;
     private String gender;
     private String role;
+    private String address;
     private boolean enablePhone;
     private double lastLatitude;
     private double lastLongitude;
@@ -19,6 +20,7 @@ public class Db_user {
                    String phone,
                    String gender,
                    String role,
+                   String address,
                    boolean phoneEnable,
                    double lastLatitude,
                    double lastLongitude,
@@ -29,6 +31,7 @@ public class Db_user {
         this.phone = phone;
         this.gender = gender;
         this.role = role;
+        this.address = address;
         this.enablePhone = phoneEnable;
         this.lastLatitude = lastLatitude; // coordinate of UC
         this.lastLongitude = lastLongitude; // coordinate of UC
@@ -48,6 +51,9 @@ public class Db_user {
     }
     public String getRole() {
         return role;
+    }
+    public String getAddress() {
+        return address;
     }
     public double getLastLatitude() {return lastLatitude; }
     public double getLastLongitude() {return lastLongitude; }

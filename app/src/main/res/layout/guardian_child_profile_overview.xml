@@ -41,14 +41,14 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center_horizontal"
-            android:text="Michael John Telgero"
+            android:text="No Child selected"
             android:textSize="18sp" />
         <TextView
             android:id="@+id/textview_address"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center_horizontal"
-            android:text="Tugbongan Cebu"
+            android:text=""
             android:textSize="15sp" />
         <LinearLayout
             android:id="@+id/LinearLayout4"
@@ -83,7 +83,7 @@
                 android:layout_width="0dp"
                 android:layout_height="fill_parent"
                 android:gravity="center_horizontal"
-                android:text="1000\nSteps"
+                android:text="No\nSteps"
                 android:textSize="15sp"
                 android:layout_gravity="center_horizontal"
                 android:layout_weight="2"
