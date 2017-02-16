@@ -11,66 +11,60 @@
     android:orientation="vertical"
     android:weightSum="6">
 
-        <LinearLayout
-            android:id="@+id/LinearLayout4"
-            android:layout_width="fill_parent"
-            android:layout_height="80sp"
-            android:orientation="horizontal"
-            android:layout_gravity="center"
-            android:gravity="center"
-            android:layout_weight="1"
-            android:weightSum="10">
-
-                <ImageView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    app:srcCompat="@drawable/clock_white"
-                    android:id="@+id/imageView2"
-                    android:layout_weight="2" />
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Enable"
-                    android:ems="10"
-                    android:id="@+id/enableText"
-                    android:gravity="center"
-                    android:textColor="@android:color/white"
-                    android:layout_weight="5" />
-                <Switch
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:id="@+id/switch_enable"
-                    android:layout_weight="3" />
-        </LinearLayout>
-        <LinearLayout
-            android:id="@+id/LinearLayout6"
-            android:layout_width="fill_parent"
-            android:layout_height="80sp"
-            android:orientation="horizontal"
-            android:layout_weight="1"
-            android:weightSum="10">
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Number of hours per day"
-                    android:ems="10"
-                    android:id="@+id/enableText2"
-                    android:gravity="center"
-                    android:textColor="@android:color/white"
-                    android:layout_weight="5" />
-                <EditText
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:ems="10"
-                    android:id="@+id/editText"
-                    android:hint="Enter"
-                    android:gravity="center"
-                    android:textColorHint="@android:color/white"
-                    android:textColor="@android:color/white"
-                    android:layout_weight="5" />
-        </LinearLayout>
     <LinearLayout
-        android:id="@+id/LinearLayout7"
+        android:layout_width="fill_parent"
+        android:layout_height="80sp"
+        android:orientation="horizontal"
+        android:layout_gravity="center"
+        android:gravity="center"
+        android:layout_weight="1"
+        android:weightSum="10">
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:srcCompat="@drawable/clock_white"
+            android:layout_weight="2" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Enable"
+            android:ems="10"
+            android:gravity="center"
+            android:textColor="@android:color/white"
+            android:layout_weight="5" />
+        <Switch
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/switch_enable"
+            android:layout_weight="3" />
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="80sp"
+        android:orientation="horizontal"
+        android:layout_weight="1"
+        android:weightSum="10">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Number of hours per day"
+            android:ems="10"
+            android:gravity="center"
+            android:textColor="@android:color/white"
+            android:layout_weight="5" />
+        <EditText
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:ems="10"
+            android:hint="Enter"
+            android:gravity="center"
+            android:textColorHint="@android:color/white"
+            android:textColor="@android:color/white"
+            android:id="@+id/editText_numHoursPerDay"
+            android:layout_weight="5" />
+    </LinearLayout>
+    <LinearLayout
         android:layout_width="fill_parent"
         android:layout_height="30sp"
         android:orientation="horizontal"
@@ -80,7 +74,6 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             app:srcCompat="@drawable/refresh_white"
-            android:id="@+id/imageView3"
             android:layout_weight="3" />
         <TextView
             android:layout_width="wrap_content"
@@ -93,7 +86,6 @@
             android:layout_weight="7" />
     </LinearLayout>
     <LinearLayout
-        android:id="@+id/LinearLayout8"
         android:layout_width="fill_parent"
         android:layout_height="80sp"
         android:orientation="horizontal"

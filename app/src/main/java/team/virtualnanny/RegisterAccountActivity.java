@@ -1,6 +1,7 @@
 package team.virtualnanny;
 
 
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
@@ -44,11 +45,15 @@ public class RegisterAccountActivity extends AppCompatActivity {
     private String phone;
     private String gender;
     private String role;
-
+    private ProgressDialog progress;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        progress = new ProgressDialog(RegisterAccountActivity.this);
+        progress.setTitle("Loading");
+        progress.setMessage("Wait while loading...");
+        progress.setCancelable(false); // disable dismiss by tapping outside of the dialog
 
 
         mDatabase = FirebaseDatabase.getInstance().getReference();
@@ -59,9 +64,17 @@ public class RegisterAccountActivity extends AppCompatActivity {
                 final FirebaseUser user = firebaseAuth.getCurrentUser();
                 if (user != null) {
                     // check if user has registered
+                    progress.show();
+
                     if(email != null) {
-                        Db_user dbuser = new Db_user(firstName,lastName,email,phone,gender,role);
+                        double lastLatitude = 10.2972; // UC coordinates
+                        double lastLongitude = 123.8950; // UC coordinates
+                        int numSteps = 0;
+                        boolean enablePhone = false;
+                        Db_user dbuser = new Db_user(firstName,lastName,email,phone,gender,role, enablePhone, lastLatitude, lastLongitude, numSteps); //adds a new user to the database
                         mDatabase.child("users").child(user.getUid()).setValue(dbuser);
+                        Db_limit dblimit = new Db_limit(false,24, false,false,false,false,false,false,false);
+                        mDatabase.child("users").child(user.getUid()).child("limit").setValue(dblimit);
                     }
 
                     FirebaseDatabase.getInstance().getReference().child("users").child(user.getUid())
@@ -75,6 +88,8 @@ public class RegisterAccountActivity extends AppCompatActivity {
                                     } else {
                                         intent = new Intent(getApplicationContext(), Child_ChildOverviewActivity.class);
                                     }
+
+                                    progress.dismiss();
 
                                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                                     finish();
@@ -104,7 +119,7 @@ public class RegisterAccountActivity extends AppCompatActivity {
         btn_register.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                progress.show();
 				EditText editText_firstName = (EditText) findViewById(R.id.editText_firstName);
 				EditText editText_lastName = (EditText) findViewById(R.id.editText_lastName);
 				EditText editText_email = (EditText) findViewById(R.id.editText_email);
@@ -129,8 +144,6 @@ public class RegisterAccountActivity extends AppCompatActivity {
 
                 RadioButton radiobtn_role = (RadioButton) findViewById(roleselectedId);
 				CheckBox checkBox_terms = (CheckBox) findViewById(R.id.checkBox_terms);
-
-
                 email = editText_email.getText().toString().trim();
                 password = editText_password.getText().toString().trim();
                 firstName = editText_firstName.getText().toString().trim();
@@ -176,6 +189,7 @@ public class RegisterAccountActivity extends AppCompatActivity {
                                     Toast.makeText(RegisterAccountActivity.this, "Authentication failed.",
                                             Toast.LENGTH_SHORT).show();
                                 }
+                                progress.dismiss();
                             }
                         });
 

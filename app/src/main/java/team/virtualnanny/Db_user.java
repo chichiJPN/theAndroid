@@ -7,7 +7,10 @@ public class Db_user {
     private String phone;
     private String gender;
     private String role;
-
+    private boolean enablePhone;
+    private double lastLatitude;
+    private double lastLongitude;
+    private int numSteps;
     public Db_user() {}
 
     public Db_user(String firstName,
@@ -15,16 +18,21 @@ public class Db_user {
                    String email,
                    String phone,
                    String gender,
-                   String role) {
+                   String role,
+                   boolean phoneEnable,
+                   double lastLatitude,
+                   double lastLongitude,
+                   int numSteps) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
         this.phone = phone;
         this.gender = gender;
         this.role = role;
-    }
-    public String getEmail() {
-        return email;
+        this.enablePhone = phoneEnable;
+        this.lastLatitude = lastLatitude; // coordinate of UC
+        this.lastLongitude = lastLongitude; // coordinate of UC
+        this.numSteps = numSteps; // coordinate of UC
     }
     public String getFirstName() {
         return firstName;
@@ -41,4 +49,7 @@ public class Db_user {
     public String getRole() {
         return role;
     }
+    public double getLastLatitude() {return lastLatitude; }
+    public double getLastLongitude() {return lastLongitude; }
+    public int getNumSteps() {return numSteps; }
 }

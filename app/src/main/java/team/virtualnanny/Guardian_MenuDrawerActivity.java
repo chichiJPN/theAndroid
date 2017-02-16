@@ -1,6 +1,7 @@
 package team.virtualnanny;
 
 
+import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.drawable.ColorDrawable;
@@ -43,7 +44,8 @@ public class Guardian_MenuDrawerActivity extends AppCompatActivity {
     private FirebaseAuth mAuth;
     private FirebaseAuth.AuthStateListener mAuthListener;
     private String m_Text = "";
-
+    private DatabaseReference mDatabase;
+    private ProgressDialog progress;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -52,6 +54,12 @@ public class Guardian_MenuDrawerActivity extends AppCompatActivity {
         getSupportActionBar().setDisplayHomeAsUpEnabled(true); // enables back button on the action bar
         getSupportActionBar().setBackgroundDrawable(new ColorDrawable(0xFF000000)); // sets the actions bar as black
 
+        progress = new ProgressDialog(Guardian_MenuDrawerActivity.this);
+        progress.setTitle("Loading");
+        progress.setMessage("Wait while loading...");
+        progress.setCancelable(false); // disable dismiss by tapping outside of the dialog
+
+        mDatabase = FirebaseDatabase.getInstance().getReference();
         mAuth = FirebaseAuth.getInstance();
         mAuthListener = new FirebaseAuth.AuthStateListener() {
             @Override
@@ -141,46 +149,49 @@ public class Guardian_MenuDrawerActivity extends AppCompatActivity {
                         builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
+
                             final String childID  = input_childid.getText().toString().trim();
                             final DatabaseReference users = FirebaseDatabase.getInstance().getReference().child("users");
+                            progress.show();
 
                             users.child(childID).addListenerForSingleValueEvent(new ValueEventListener() {
                                         @Override
                                         public void onDataChange(DataSnapshot dataSnapshot) {
                                             if(dataSnapshot.exists()) {
-                                                Toast.makeText(Guardian_MenuDrawerActivity.this, "Id exists.",Toast.LENGTH_SHORT).show();
+                                                if(dataSnapshot.child("role").getValue().equals("Child")) {
+                                                    final String currentUserID = mAuth.getCurrentUser().getUid();
+                                                    users.child(currentUserID).child("children").addListenerForSingleValueEvent(new ValueEventListener() {
+                                                        @Override
+                                                        public void onDataChange(DataSnapshot children) {
+                                                            if(children.getChildrenCount() < 3) { // if children are lesser than 3
+                                                                String childKey = users.child(currentUserID).child("children").push().getKey(); // create a key
+                                                                Map<String, Object> childUpdate = new HashMap<String, Object>(); //
+                                                                childUpdate.put(childKey, childID);
+                                                                users.child(currentUserID).child("children").updateChildren(childUpdate);
+                                                                Toast.makeText(Guardian_MenuDrawerActivity.this, "Child has been added.",Toast.LENGTH_SHORT).show();
+                                                            } else {
+                                                                Toast.makeText(Guardian_MenuDrawerActivity.this, "Already have 3 children.",Toast.LENGTH_SHORT).show();
+                                                            }
+                                                        }
+
+                                                        @Override
+                                                        public void onCancelled(DatabaseError databaseError) {}
+                                                    });
+                                                } else {
+                                                    Toast.makeText(Guardian_MenuDrawerActivity.this, "Person is not a child.",Toast.LENGTH_SHORT).show();
+                                                }
                                             } else {
-                                                Toast.makeText(Guardian_MenuDrawerActivity.this, "Id does not exist.",Toast.LENGTH_SHORT).show();
-                                                String myID = FirebaseAuth.getInstance().getCurrentUser().getUid();
-
-                                                Map<String, Object> childUpdates = new HashMap<>();
-                                                childUpdates.put( myID + "/children", childID);
-
-                                                users.updateChildren(childUpdates);
-
+                                                Toast.makeText(Guardian_MenuDrawerActivity.this, "Child does not exist.",Toast.LENGTH_SHORT).show();
                                             }
-                                            /*
-                                            Db_user dbuser = dataSnapshot.getValue(Db_user.class);
-                                            Intent intent;
-                                            if(dbuser.getRole().equals("Parent")) {
-                                                intent = new Intent(getApplicationContext(), Guardian_ChildProfileOverviewActivity.class);
-                                            } else {
-                                                intent = new Intent(getApplicationContext(), Child_ChildOverviewActivity.class);
-                                            }
-
-                                            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                                            finish();
-                                            startActivity(intent);
-                                            */
-                                        }
+                                         }
 
                                         @Override
-                                        public void onCancelled(DatabaseError databaseError) {
-                                        }
+                                        public void onCancelled(DatabaseError databaseError) {}
                                     });
-
+                                progress.dismiss();
                             }
                         });
+
                         builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {

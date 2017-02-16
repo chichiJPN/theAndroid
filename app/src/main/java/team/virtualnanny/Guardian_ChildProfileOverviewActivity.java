@@ -1,5 +1,6 @@
 package team.virtualnanny;
 
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -42,36 +43,108 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.security.Guard;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 
 public class Guardian_ChildProfileOverviewActivity extends FragmentActivity implements OnMapReadyCallback{
 
     private GoogleMap mMap;
-    GPSTracker gps;
+    private FirebaseAuth mAuth;
+    private FirebaseAuth.AuthStateListener mAuthListener;
+    private DatabaseReference mDatabase;
+    private ProgressDialog progress;
+    private String currentlySelectedUserID;
+    private String currentUserNumber;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.guardian_child_profile_overview);
 
-        LinearLayout ll = (LinearLayout) findViewById(R.id.panel_header);
+        progress = new ProgressDialog(Guardian_ChildProfileOverviewActivity.this);
+        progress.setTitle("Loading");
+        progress.setMessage("Wait while loading...");
+        progress.setCancelable(false); // disable dismiss by tapping outside of the dialog
 
-        ImageView ii = new ImageView(this);
-        ii.setBackgroundResource(R.drawable.profile_child1);
-        ll.addView(ii);
+        mDatabase = FirebaseDatabase.getInstance().getReference();
+        mAuth = FirebaseAuth.getInstance();
+        mAuthListener = new FirebaseAuth.AuthStateListener() {
+            @Override
+            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
+            FirebaseUser user = firebaseAuth.getCurrentUser();
+            if (user == null) {
+                Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                finish();
+                startActivity(intent);
+            }
+            }
+        };
 
-        ImageView ii2 = new ImageView(this);
-        ii2.setBackgroundResource(R.drawable.profile_child2);
-        ll.addView(ii2);
+        final TextView tv_name = (TextView) findViewById(R.id.textview_name);
+        TextView tv_address = (TextView) findViewById(R.id.textview_address);
+        final LinearLayout panel_header = (LinearLayout) findViewById(R.id.panel_header);
 
-        ImageView ii3 = new ImageView(this);
-        ii3.setBackgroundResource(R.drawable.profile_child3);
-        ll.addView(ii3);
+        final DatabaseReference users = mDatabase.child("users");
+        final String currentUserID = mAuth.getCurrentUser().getUid();
+        users.child(currentUserID).child("children").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if(dataSnapshot.exists()) {
+                    progress.show();
+                    long numChildren = dataSnapshot.getChildrenCount();
+                    for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                        String userID = snapshot.getValue().toString();
+                        Log.d("User id is ",userID);
+                        ImageView ii = new ImageView(Guardian_ChildProfileOverviewActivity.this);
+                        ii.setBackgroundResource(R.drawable.profile_child1);
+                        ii.setTag(userID);
+                        ii.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                currentlySelectedUserID = (String)v.getTag();
+                                progress.show();
+                                users.child(currentlySelectedUserID).addListenerForSingleValueEvent(new ValueEventListener() {
+                                    @Override
+                                    public void onDataChange(DataSnapshot dataSnapshot) {
+                                        Db_user user = dataSnapshot.getValue(Db_user.class);
+                                        currentUserNumber = user.getPhone();
 
-        TextView tv_name_ = (TextView) findViewById(R.id.textview_name);
-        TextView tv_address_ = (TextView) findViewById(R.id.textview_address);
+                                        String firstName = user.getFirstName();
+                                        String lastName = user.getLastName();
+                                        tv_name.setText(firstName + " "+ lastName);
+
+                                        progress.dismiss();
+                                    }
+
+                                    @Override
+                                    public void onCancelled(DatabaseError databaseError) {}
+                                });
+                            }
+                        });
+                        panel_header.addView(ii);
+                    }
+                    progress.dismiss();
+
+                } else {
+                    Toast.makeText(Guardian_ChildProfileOverviewActivity.this, "No Children",Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {}
+        });
+
         ImageButton btn_phone = (ImageButton) findViewById(R.id.btn_phone);
         ImageButton btn_message = (ImageButton) findViewById(R.id.btn_message);
         ImageButton btn_fence = (ImageButton) findViewById(R.id.btn_fence);
@@ -87,7 +160,7 @@ public class Guardian_ChildProfileOverviewActivity extends FragmentActivity impl
             @Override
             public void onClick(View v) {
 
-                Uri number = Uri.parse("tel:123456789");
+                Uri number = Uri.parse("tel:"+ currentUserNumber);
                 Intent callIntent = new Intent(Intent.ACTION_DIAL, number);
                 startActivity(callIntent);
 
@@ -102,11 +175,12 @@ public class Guardian_ChildProfileOverviewActivity extends FragmentActivity impl
                         Toast.LENGTH_SHORT).show();
                 Intent smsIntent = new Intent(Intent.ACTION_VIEW);
                 smsIntent.setType("vnd.android-dir/mms-sms");
-                smsIntent.putExtra("address", "09228076111");
+                smsIntent.putExtra("address", currentUserNumber);
                 smsIntent.putExtra("sms_body", "Body of Message");
                 startActivity(smsIntent);
             }
         });
+
         btn_fence.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -191,24 +265,6 @@ public class Guardian_ChildProfileOverviewActivity extends FragmentActivity impl
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-        gps = new GPSTracker(Guardian_ChildProfileOverviewActivity.this);
-
-        // check if GPS enabled
-        Log.d("Can get location", ""+gps.canGetLocation());
-
-        if(gps.canGetLocation()){
-
-            double latitude = gps.getLatitude();
-            double longitude = gps.getLongitude();
-
-            // \n is for new line
-            Toast.makeText(getApplicationContext(), "Your Location is - \nLat: " + latitude + "\nLong: " + longitude, Toast.LENGTH_LONG).show();
-        }else{
-            // can't get location
-            // GPS or Network is not enabled
-            // Ask user to enable GPS/network in settings
-            gps.showSettingsAlert();
-        }
 /*
         final LocationManager manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 

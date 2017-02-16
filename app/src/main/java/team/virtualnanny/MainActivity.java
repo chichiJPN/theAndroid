@@ -1,5 +1,6 @@
 package team.virtualnanny;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -27,10 +28,15 @@ public class MainActivity extends AppCompatActivity {
 
     private FirebaseAuth mAuth;
     private FirebaseAuth.AuthStateListener mAuthListener;
-
+    private ProgressDialog progress;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        progress = new ProgressDialog(MainActivity.this);
+        progress.setTitle("Loading");
+        progress.setMessage("Wait while loading...");
+        progress.setCancelable(false); // disable dismiss by tapping outside of the dialog
 
         mAuth = FirebaseAuth.getInstance();
         mAuthListener = new FirebaseAuth.AuthStateListener() {
@@ -38,10 +44,15 @@ public class MainActivity extends AppCompatActivity {
             public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
                 FirebaseUser user = firebaseAuth.getCurrentUser();
                 if (user != null) {
+
+                    progress.show();
+
                     FirebaseDatabase.getInstance().getReference().child("users").child(user.getUid())
                         .addListenerForSingleValueEvent(new ValueEventListener() {
                             @Override
                             public void onDataChange(DataSnapshot dataSnapshot) {
+
+
                                 Db_user dbuser = dataSnapshot.getValue(Db_user.class);
                                 Intent intent;
                                 if(dbuser.getRole().equals("Parent")) {
@@ -49,6 +60,9 @@ public class MainActivity extends AppCompatActivity {
                                 } else {
                                     intent = new Intent(getApplicationContext(), Child_ChildOverviewActivity.class);
                                 }
+
+                                progress.dismiss();
+
 
                                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                                 finish();
@@ -72,6 +86,8 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onClick(View v) {
+                progress.show();
+
                 EditText input_username = (EditText) findViewById(R.id.editText_username); // gets the field by ID from layout xml
                 EditText input_password = (EditText) findViewById(R.id.editText_password);
 
@@ -90,6 +106,7 @@ public class MainActivity extends AppCompatActivity {
                                     Log.w("Login", "signInWithEmail", task.getException());
                                     Toast.makeText(MainActivity.this, "Login failed. Please ensure correct username and password",
                                             Toast.LENGTH_SHORT).show();
+                                    progress.dismiss();
                                 }
                             }
                         });
