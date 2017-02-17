@@ -5,7 +5,6 @@ import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
@@ -19,7 +18,6 @@ import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.google.android.gms.maps.model.LatLng;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -28,20 +26,11 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 
-public class Guardian_Service extends Service {
+public class Child_Service extends Service {
 
     public static double StepSize = 0.6;
     private MyLocationListener myLocationListener;
@@ -69,7 +58,7 @@ public class Guardian_Service extends Service {
                 FirebaseUser user = firebaseAuth.getCurrentUser();
                 if (user == null) {
                     Toast.makeText(getApplicationContext(), "Service is stopped", Toast.LENGTH_SHORT).show();
-                    Guardian_Service.this.stopSelf();
+                    Child_Service.this.stopSelf();
                 }
             }
         };
@@ -152,7 +141,7 @@ public class Guardian_Service extends Service {
         numStepObject.put("lastLongitude", lastLongitude);
         userRef.updateChildren(numStepObject);
         this.lastLocation = location;
-        Toast.makeText(Guardian_Service.this, "Number of steps:"+numSteps, Toast.LENGTH_LONG).show();
+        Toast.makeText(Child_Service.this, "Number of steps:"+numSteps, Toast.LENGTH_LONG).show();
         busyFlag = false;
 
     }
@@ -165,7 +154,8 @@ public class Guardian_Service extends Service {
             if(location == null){
                 return;
             }
-            //Toast.makeText(Guardian_Service.this, "Latitude:"+location.getLatitude()+"Longitude:"+location.getLongitude(), Toast.LENGTH_LONG).show();
+
+            //Toast.makeText(Child_Service.this, "Latitude:"+location.getLatitude()+"Longitude:"+location.getLongitude(), Toast.LENGTH_LONG).show();
             if (location.getSpeed() * 60 * 60 / 1000 < 10 && location.getSpeed() * 60 * 60 / 1000 > 2 && busyFlag == false) {
                 setLastLocation(location);
             }

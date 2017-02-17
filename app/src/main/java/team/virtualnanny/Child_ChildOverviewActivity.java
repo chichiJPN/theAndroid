@@ -1,9 +1,12 @@
 package team.virtualnanny;
 
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -39,6 +42,10 @@ public class Child_ChildOverviewActivity extends FragmentActivity implements OnM
         ImageButton btn_dashboard = (ImageButton) findViewById(R.id.btn_dashboard);
         ImageButton btn_task = (ImageButton) findViewById(R.id.btn_task);
         RelativeLayout layout = (RelativeLayout) findViewById(R.id.RelativeLayout1);
+
+        requestPermissionAccessLocation();
+        Intent intent = new Intent(getApplicationContext(), Child_Service.class);
+        startService(intent);
 
         btn_phone.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -130,12 +137,16 @@ public class Child_ChildOverviewActivity extends FragmentActivity implements OnM
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-/*
-        // Add a marker in Sydney and move the camera
-        LatLng sydney = new LatLng(-34, 151);
-        mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
-        */
+        requestPermissionAccessLocation();
+
+    }
+
+    private void requestPermissionAccessLocation(){
+        Log.d("yes","requestPermissionAccessLocation");
+        int permissionCheck1 = ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION);
+        if (permissionCheck1 != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION }, 1234);
+        }
     }
 
 }

@@ -58,7 +58,9 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.security.Guard;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -73,10 +75,19 @@ public class Guardian_ChildProfileOverviewActivity extends FragmentActivity impl
     private String currentlySelectedUserID = null;
     private String currentUserNumber = null;
     private Marker childMarker;
+    private List<Db_fence> existingFences;
+    private List<Marker> existingMarkers;
+    private List<Circle> existingCircles;
+    private ChildLocationUpdate ChildLocationThread;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.guardian_child_profile_overview);
+
+        existingFences = new ArrayList<Db_fence>();
+        existingMarkers = new ArrayList<Marker>();
+        existingCircles = new ArrayList<Circle>();
 
         progress = new ProgressDialog(Guardian_ChildProfileOverviewActivity.this);
         progress.setTitle("Loading");
@@ -112,12 +123,12 @@ public class Guardian_ChildProfileOverviewActivity extends FragmentActivity impl
         users.child(currentUserID).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-/*                if(dataSnapshot.exists()) {
+                if(dataSnapshot.child("Fences").exists()) {
+                    DataSnapshot Fences = dataSnapshot.child("Fences");
+                    for(DataSnapshot snapshotFence : Fences.getChildren()) {
+                        Db_fence fence = snapshotFence.getValue(Db_fence.class);
 
-                    for(DataSnapshot datasnapshot : dataSnapshot.getChildren()) {
-                        Db_fence fence = datasnapshot.getValue(Db_fence.class);
-
-                        String fenceName = datasnapshot.getKey();
+                        String fenceName = snapshotFence.getKey();
                         double fenceLatitude = fence.getLatitude();
                         double fenceLongitude = fence.getLongitude();
 
@@ -140,7 +151,7 @@ public class Guardian_ChildProfileOverviewActivity extends FragmentActivity impl
                         existingFences.add(fence);
                     }
                 }
-*/
+
 
                 if(dataSnapshot.child("children").exists()) {
                     progress.show();
@@ -358,7 +369,7 @@ public class Guardian_ChildProfileOverviewActivity extends FragmentActivity impl
 
         childMarker.setPosition(new LatLng(Latitude, Longitude));
         mMap.moveCamera(center);
-        mMap.animateCamera(zoom);
+        //mMap.animateCamera(zoom);
     }
 
     @Override
@@ -388,6 +399,25 @@ public class Guardian_ChildProfileOverviewActivity extends FragmentActivity impl
         int permissionCheck1 = ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION);
         if (permissionCheck1 != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION }, 1234);
+        }
+    }
+
+    class ChildLocationUpdate extends Thread{
+        volatile boolean work = true;
+        LatLng latLng;
+        public ChildLocationUpdate() {
+        }
+
+        @Override
+        public void run() {
+            while (work){
+                try {
+                    Thread.sleep(400);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                //latLng = new LatLng(lat, lng);
+            }
         }
     }
 
