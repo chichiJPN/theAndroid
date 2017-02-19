@@ -19,6 +19,7 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.firebase.auth.FirebaseAuth;
@@ -87,6 +88,7 @@ public class Child_MenuDrawerActivity extends AppCompatActivity {
                 "Notifications",
                 "Messages",
                 "Add Parent Account",
+                "My ID",
                 "Logout",
                 "About Us"
         };
@@ -94,6 +96,7 @@ public class Child_MenuDrawerActivity extends AppCompatActivity {
         Integer[] imgid={
                 R.drawable.notifications,
                 R.drawable.message,
+                R.drawable.add_user,
                 R.drawable.add_user,
                 R.drawable.logout,
                 R.drawable.about_us,
@@ -186,6 +189,22 @@ public class Child_MenuDrawerActivity extends AppCompatActivity {
 
                         builder.show();
 
+                        break;
+
+                    case "My ID":
+                        AlertDialog.Builder builderID = new AlertDialog.Builder(Child_MenuDrawerActivity.this);
+                        LinearLayout layoutID = new LinearLayout(Child_MenuDrawerActivity.this);
+                        layoutID.setOrientation(LinearLayout.VERTICAL);
+                        final TextView myID = new TextView(Child_MenuDrawerActivity.this);
+
+                        myID.setText(FirebaseAuth.getInstance().getCurrentUser().getUid());
+                        myID.setGravity(Gravity.CENTER | Gravity.BOTTOM);
+                        myID.setPadding(0,50,0,30);
+                        layoutID.addView(myID);
+
+                        builderID.setView(layoutID);
+
+                        builderID.show();
                         break;
                     case "Logout":
                         FirebaseAuth.getInstance().signOut();

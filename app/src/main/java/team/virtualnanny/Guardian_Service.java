@@ -88,8 +88,8 @@ public class Guardian_Service extends Service {
                 if(!checkLocationPermission()){
                     return;
                 }
-                myManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, myLocationListener);
-                myManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, myLocationListener);
+                myManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000, 0, myLocationListener);
+                myManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 5000, 0, myLocationListener);
                 Log.d("service","i have reached here");
             }
 
@@ -103,9 +103,6 @@ public class Guardian_Service extends Service {
         Log.d("service","onDestroy");
         super.onDestroy();
         if (myManager != null && myLocationListener != null) {
-            if(!checkLocationPermission()){
-                return;
-            }
             myManager.removeUpdates(myLocationListener);
         }
     }
@@ -142,7 +139,11 @@ public class Guardian_Service extends Service {
         }else {
             this.lastLocation = location;
         }
-        numSteps += ((int)(distance / StepSize));
+
+        if(distance < 8) { // if distance walked is less than 25 meters
+            numSteps += ((int)(distance / StepSize));
+        }
+
         double lastLatitude = location.getLatitude();
         double lastLongitude = location.getLatitude();
 

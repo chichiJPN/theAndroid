@@ -43,6 +43,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.security.Guard;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -233,9 +234,22 @@ public class Guardian_SetFenceActivity extends AppCompatActivity implements OnMa
                                         double y2 = newMarkerLatitude;
                                         double y1 = fence.getLatitude();
 
-                                        double distance = Math.sqrt(Math.pow((x2 - x1), 2) + Math.pow((y2 - y1), 2));
+                                        Location loc1 = new Location("");
+                                        loc1.setLatitude(fence.getLatitude());
+                                        loc1.setLongitude(fence.getLongitude());
+
+                                        Location loc2 = new Location("");
+                                        loc2.setLatitude(newMarkerLatitude);
+                                        loc2.setLongitude(newMarkerLongitude);
+
+                                        float distance = loc1.distanceTo(loc2);
+//                                        double distance = Math.sqrt(Math.pow((x2 - x1), 2) + Math.pow((y2 - y1), 2));
                                         double radius1 = fence.getRadius();
                                         double radius2 = mapCircle.getRadius();
+
+                                        Log.d("radius1",""+radius1);
+                                        Log.d("radius2",""+radius2);
+                                        Log.d("distance",""+distance);
 
                                         if (distance < radius1 + radius2) {
                                             Toast.makeText(Guardian_SetFenceActivity.this, "Circles are overlapping", Toast.LENGTH_SHORT).show();
@@ -317,6 +331,30 @@ public class Guardian_SetFenceActivity extends AppCompatActivity implements OnMa
         return super.onOptionsItemSelected(item);
     }
 
+    public double CalculationByDistance(LatLng StartP, LatLng EndP) {
+        int Radius = 6371;// radius of earth in Km
+        double lat1 = StartP.latitude;
+        double lat2 = EndP.latitude;
+        double lon1 = StartP.longitude;
+        double lon2 = EndP.longitude;
+        double dLat = Math.toRadians(lat2 - lat1);
+        double dLon = Math.toRadians(lon2 - lon1);
+        double a = Math.sin(dLat / 2) * Math.sin(dLat / 2)
+                + Math.cos(Math.toRadians(lat1))
+                * Math.cos(Math.toRadians(lat2)) * Math.sin(dLon / 2)
+                * Math.sin(dLon / 2);
+        double c = 2 * Math.asin(Math.sqrt(a));
+        double valueResult = Radius * c;
+        double km = valueResult / 1;
+        DecimalFormat newFormat = new DecimalFormat("####");
+        int kmInDec = Integer.valueOf(newFormat.format(km));
+        double meter = valueResult % 1000;
+        int meterInDec = Integer.valueOf(newFormat.format(meter));
+        Log.i("Radius Value", "" + valueResult + "   KM  " + kmInDec
+                + " Meter   " + meterInDec);
+
+        return Radius * c;
+    }
 
     /**
      * Manipulates the map once available.

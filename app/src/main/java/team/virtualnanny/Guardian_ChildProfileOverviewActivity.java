@@ -189,6 +189,7 @@ public class Guardian_ChildProfileOverviewActivity extends FragmentActivity impl
                                                     textview_steps.setText("" +numSteps);
                                                     animateAndZoomToLocation(user.getLastLatitude(), user.getLastLongitude());
                                                     childMarker.setTitle(firstName + "" + lastName);
+
                                                     progress.dismiss();
 
                                                 }
@@ -369,7 +370,7 @@ public class Guardian_ChildProfileOverviewActivity extends FragmentActivity impl
 
         childMarker.setPosition(new LatLng(Latitude, Longitude));
         mMap.moveCamera(center);
-        //mMap.animateCamera(zoom);
+        mMap.animateCamera(zoom);
     }
 
     @Override
