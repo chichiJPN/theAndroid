@@ -2,11 +2,8 @@ package team.virtualnanny;
 
 public class Db_alarm {
     private boolean enable;
-    private boolean entering;
-    private boolean leaving;
     private int hour;
     private int minute;
-    private String period;
     private boolean sunday;
     private boolean monday;
     private boolean tuesday;
@@ -16,14 +13,9 @@ public class Db_alarm {
     private boolean saturday;
 
     public Db_alarm() {}
-
-
     public Db_alarm(boolean enable,
-                    boolean entering,
-                    boolean leaving,
                     int hour,
                     int minute,
-                    String period,
                     boolean Sunday,
                     boolean Monday,
                     boolean Tuesday,
@@ -33,11 +25,8 @@ public class Db_alarm {
                     boolean Saturday
     ) {
         this.enable = enable;
-        this.entering = entering;
-        this.leaving = leaving;
         this.hour = hour;
         this.minute = minute;
-        this.period = period;
         this.sunday = Sunday;
         this.monday = Monday;
         this.tuesday = Tuesday;
@@ -49,20 +38,11 @@ public class Db_alarm {
     public boolean getEnable() {
         return enable;
     }
-    public boolean getEntering() {
-        return entering;
-    }
-    public boolean getLeaving() {
-        return leaving;
-    }
     public int getHour() {
         return hour;
     }
     public int getMinute() {
         return minute;
-    }
-    public String getPeriod() {
-        return period;
     }
     public boolean getSunday() {
         return sunday;

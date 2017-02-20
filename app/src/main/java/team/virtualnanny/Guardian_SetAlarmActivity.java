@@ -14,7 +14,12 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.Spinner;
+import android.widget.Switch;
+import android.widget.TextView;
+import android.widget.TimePicker;
 import android.widget.Toast;
 
 import com.google.android.gms.maps.model.Circle;
@@ -30,7 +35,9 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 
@@ -42,6 +49,15 @@ public class Guardian_SetAlarmActivity extends AppCompatActivity {
     private ProgressDialog progress;
     private String childID;
     private String currentUserID;
+    private Switch switch_enable;
+    private TimePicker timepicker;
+    private TextView repeatSunday;
+    private TextView repeatMonday ;
+    private TextView repeatTuesday;
+    private TextView repeatWednesday;
+    private TextView repeatThursday;
+    private TextView repeatFriday;
+    private TextView repeatSaturday;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -84,11 +100,22 @@ public class Guardian_SetAlarmActivity extends AppCompatActivity {
 
         currentUserID = mAuth.getCurrentUser().getUid(); // gets the user ID of the logged in user
 
-        Spinner s = (Spinner) findViewById(R.id.spinner_fences);
+        switch_enable = (Switch) findViewById(R.id.switch_enable);
+        timepicker = (TimePicker) findViewById(R.id.timepicker);
+        repeatSunday = (TextView) findViewById(R.id.repeatSunday);
+        repeatMonday = (TextView) findViewById(R.id.repeatMonday);
+        repeatTuesday = (TextView) findViewById(R.id.repeatTuesday);
+        repeatWednesday = (TextView) findViewById(R.id.repeatWednesday);
+        repeatThursday = (TextView) findViewById(R.id.repeatThursday);
+        repeatFriday = (TextView) findViewById(R.id.repeatFriday);
+        repeatSaturday = (TextView) findViewById(R.id.repeatSaturday);
+
+        // sets the dropdown spinner in the layout
+        final Spinner spinnerFences = (Spinner) findViewById(R.id.spinner_fences);
         final ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,
                 android.R.layout.simple_spinner_item);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        s.setAdapter(adapter);
+        spinnerFences.setAdapter(adapter);
 
         progress.show();
         // retrieves from the database the fences made by the user
@@ -98,16 +125,10 @@ public class Guardian_SetAlarmActivity extends AppCompatActivity {
                 if(dataSnapshot.exists()) {
                     for(DataSnapshot datasnapshot : dataSnapshot.getChildren()) {
                         Db_fence fence = datasnapshot.getValue(Db_fence.class);
-
                         String fenceName = datasnapshot.getKey();
-
                         adapter.add(fenceName);
-                        Log.d("fenceName", fenceName);
                     }
                     adapter.notifyDataSetChanged();
-                   // String foo[] = spinnerList.toArray(new String[0]);
-
-
                 }
                 progress.dismiss();
             }
@@ -116,54 +137,185 @@ public class Guardian_SetAlarmActivity extends AppCompatActivity {
             public void onCancelled(DatabaseError databaseError) {}
         });
 
-        s.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener()
-        {
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id)
-            {
-                String fenceName = parent.getItemAtPosition(position).toString();
-                Log.d("Selected item", fenceName);
-                progress.show();
-                // retrieves from the database the fences made by the user
-                mDatabase.child("users").child(childID).child("alarms").child(fenceName).addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
+        final RadioGroup radiogrp_mode = (RadioGroup) findViewById(R.id.radioGrp_mode);
 
+        radiogrp_mode.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(RadioGroup group, int checkedId) {
+                RadioButton radiobtn_mode = (RadioButton) findViewById(checkedId);
 
-                        if(dataSnapshot.exists()) {
-                                Db_fence fence = dataSnapshot.getValue(Db_fence.class);
+                String mode = radiobtn_mode.getText().toString();
+                String fenceName = spinnerFences.getSelectedItem().toString();
 
-                                String fenceName = dataSnapshot.getKey();
-                            // String foo[] = spinnerList.toArray(new String[0]);
-                        } else {
-
-                        }
-                        progress.dismiss();
-                    }
-
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {}
-                });
-
-
-            } // to close the onItemSelected
-            public void onNothingSelected(AdapterView<?> parent)
-            {
+                getAlarmDetails(fenceName,mode);
 
             }
         });
 
-        // ArrayAdapter<String > gender_adapter = new ArrayAdapter<String> (getActivity(), R.layout.spinner_style,gender_spinner );
+        spinnerFences.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener()
+        {
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id)
+            {
+                int selectedId = radiogrp_mode.getCheckedRadioButtonId();
+                if(selectedId == -1) {
+                    Toast.makeText(Guardian_SetAlarmActivity.this, "Please select if leaving or entering.",Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                RadioButton radiobtn_mode = (RadioButton) findViewById(selectedId);
 
-/*
+                String mode = radiobtn_mode.getText().toString();
+                String fenceName = parent.getItemAtPosition(position).toString();
+
+                getAlarmDetails(fenceName,mode);
+            }
+            public void onNothingSelected(AdapterView<?> parent) {}
+        });
+
+
+
         Button btn_set = (Button) findViewById(R.id.btn_set);
         btn_set.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(getApplicationContext(), "Set limit button pressed",
+                String fenceName = spinnerFences.getSelectedItem().toString();
+
+                int selectedId = radiogrp_mode.getCheckedRadioButtonId();
+                if(selectedId == -1) {
+                    Toast.makeText(Guardian_SetAlarmActivity.this, "Please select if leaving or entering.",Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                RadioButton radiobtn_mode = (RadioButton) findViewById(selectedId);
+
+                String mode = radiobtn_mode.getText().toString();
+                Db_alarm alarm = new Db_alarm(
+                        switch_enable.isChecked(),
+                        timepicker.getCurrentHour(),
+                        timepicker.getCurrentMinute(),
+                        repeatSunday.getCurrentTextColor() != -1,
+                        repeatMonday.getCurrentTextColor() != -1,
+                        repeatTuesday.getCurrentTextColor() != -1,
+                        repeatWednesday.getCurrentTextColor() != -1,
+                        repeatThursday.getCurrentTextColor() != -1,
+                        repeatFriday.getCurrentTextColor() != -1,
+                        repeatSaturday.getCurrentTextColor() != -1
+                );
+
+                final DatabaseReference users = mDatabase.child("users");
+                users.child(childID).child("alarms").child(fenceName).child(mode).setValue(alarm);
+                Toast.makeText(getApplicationContext(), "Alarm has been set",
                         Toast.LENGTH_SHORT).show();
+
             }
         });
-        */
+
+        repeatSunday.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(repeatSunday.getCurrentTextColor() == -1) { // current color is white
+                    repeatSunday.setTextColor(Color.parseColor("#FF0000"));
+                } else {
+                    repeatSunday.setTextColor(Color.parseColor("#000000"));
+                }
+            }
+        });
+        repeatMonday.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(repeatMonday.getCurrentTextColor() == -1) { // current color is white
+                    repeatMonday.setTextColor(Color.parseColor("#FF0000"));
+                } else {
+                    repeatMonday.setTextColor(Color.parseColor("#000000"));
+                }
+            }
+        });
+        repeatTuesday.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(repeatTuesday.getCurrentTextColor() == -1) { // current color is white
+                    repeatTuesday.setTextColor(Color.parseColor("#FF0000"));
+                } else {
+                    repeatTuesday.setTextColor(Color.parseColor("#000000"));
+                }
+            }
+        });
+        repeatWednesday.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(repeatWednesday.getCurrentTextColor() == -1) { // current color is white
+                    repeatWednesday.setTextColor(Color.parseColor("#FF0000"));
+                } else {
+                    repeatWednesday.setTextColor(Color.parseColor("#000000"));
+                }
+            }
+        });
+        repeatThursday.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(repeatThursday.getCurrentTextColor() == -1) { // current color is white
+                    repeatThursday.setTextColor(Color.parseColor("#FF0000"));
+                } else {
+                    repeatThursday.setTextColor(Color.parseColor("#000000"));
+                }
+            }
+        });
+        repeatFriday.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(repeatFriday.getCurrentTextColor() == -1) { // current color is white
+                    repeatFriday.setTextColor(Color.parseColor("#FF0000"));
+                } else {
+                    repeatFriday.setTextColor(Color.parseColor("#000000"));
+                }
+            }
+        });
+        repeatSaturday.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(repeatSaturday.getCurrentTextColor() == -1) { // current color is white
+                    repeatSaturday.setTextColor(Color.parseColor("#FF0000"));
+                } else {
+                    repeatSaturday.setTextColor(Color.parseColor("#FFFFFF"));
+                }
+            }
+        });
+    }
+
+    public void getAlarmDetails(String fenceName, String mode) {
+
+        // retrieves from the database the fences made by the user
+        mDatabase.child("users").child(childID).child("alarms").child(fenceName).child(mode).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+
+                if(dataSnapshot.exists()) {
+                    Db_alarm alarm = dataSnapshot.getValue(Db_alarm.class);
+
+                    switch_enable.setChecked(alarm.getEnable());
+                    timepicker.setCurrentHour(alarm.getHour());
+                    timepicker.setCurrentMinute(alarm.getMinute());
+                    repeatSunday.setTextColor(alarm.getSunday() ? Color.parseColor("#FF0000") : Color.parseColor("#FFFFFF"));
+                    repeatMonday.setTextColor(alarm.getMonday() ? Color.parseColor("#FF0000") : Color.parseColor("#FFFFFF"));
+                    repeatTuesday.setTextColor(alarm.getTuesday() ? Color.parseColor("#FF0000") : Color.parseColor("#FFFFFF"));
+                    repeatWednesday.setTextColor(alarm.getWednesday() ? Color.parseColor("#FF0000") : Color.parseColor("#FFFFFF"));
+                    repeatThursday.setTextColor(alarm.getThursday() ? Color.parseColor("#FF0000") : Color.parseColor("#FFFFFF"));
+                    repeatFriday.setTextColor(alarm.getFriday() ? Color.parseColor("#FF0000") : Color.parseColor("#FFFFFF"));
+                    repeatSaturday.setTextColor(alarm.getSaturday() ? Color.parseColor("#FF0000") : Color.parseColor("#FFFFFF"));
+                } else {
+                    switch_enable.setChecked(false);
+                    repeatSunday.setTextColor(Color.parseColor("#000000"));
+                    repeatMonday.setTextColor(Color.parseColor("#000000"));
+                    repeatTuesday.setTextColor(Color.parseColor("#000000"));
+                    repeatWednesday.setTextColor(Color.parseColor("#000000"));
+                    repeatThursday.setTextColor(Color.parseColor("#000000"));
+                    repeatFriday.setTextColor(Color.parseColor("#000000"));
+                    repeatSaturday.setTextColor(Color.parseColor("#000000"));
+                }
+                progress.dismiss();
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {}
+        });
     }
 
     @Override

@@ -114,7 +114,6 @@ public class Guardian_SetLimitActivity extends AppCompatActivity {
             }
         });
 
-
         repeatSunday.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -195,8 +194,6 @@ public class Guardian_SetLimitActivity extends AppCompatActivity {
 
                 if(numHours > 24) { numHours = 24; }
                 else if(numHours < 1) { numHours = 1; }
-
-
 
                 Db_limit limit = new Db_limit(
                         switch_enable.isChecked(),
