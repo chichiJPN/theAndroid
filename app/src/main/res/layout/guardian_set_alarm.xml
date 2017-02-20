@@ -10,6 +10,15 @@
     android:orientation="vertical"
     android:weightSum="7">
     <!--    android:background="@color/colorDefault" -->
+    <Spinner
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/spinner_fences"
+        android:gravity="center"
+        android:paddingTop="20px"
+        android:paddingBottom="20px"
+        android:background="#FFFFFF"
+        android:layout_weight="1" />
 
         <LinearLayout
             android:id="@+id/LinearLayout4"
@@ -38,15 +47,6 @@
                     android:id="@+id/switch_enable"
                     android:layout_weight="5" />
         </LinearLayout>
-    <Spinner
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/spinner_fences"
-        android:gravity="center"
-        android:paddingTop="20px"
-        android:paddingBottom="20px"
-        android:background="#FFFFFF"
-        android:layout_weight="1" />
 
     <TimePicker
         android:id="@+id/timePicker1"

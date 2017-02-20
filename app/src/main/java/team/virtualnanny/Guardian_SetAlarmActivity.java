@@ -11,6 +11,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.Spinner;
@@ -40,6 +41,7 @@ public class Guardian_SetAlarmActivity extends AppCompatActivity {
     private DatabaseReference mDatabase;
     private ProgressDialog progress;
     private String childID;
+    private String currentUserID;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,17 +82,16 @@ public class Guardian_SetAlarmActivity extends AppCompatActivity {
             }
         };
 
-        String currentUserID = mAuth.getCurrentUser().getUid();
-//        final List<String> spinnerList = new ArrayList<String>();
+        currentUserID = mAuth.getCurrentUser().getUid(); // gets the user ID of the logged in user
+
         Spinner s = (Spinner) findViewById(R.id.spinner_fences);
-        String sample[] = new String[] {};
         final ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,
                 android.R.layout.simple_spinner_item);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         s.setAdapter(adapter);
 
-
         progress.show();
+        // retrieves from the database the fences made by the user
         mDatabase.child("users").child(currentUserID).child("Fences").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -112,13 +113,44 @@ public class Guardian_SetAlarmActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onCancelled(DatabaseError databaseError) {
+            public void onCancelled(DatabaseError databaseError) {}
+        });
+
+        s.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener()
+        {
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id)
+            {
+                String fenceName = parent.getItemAtPosition(position).toString();
+                Log.d("Selected item", fenceName);
+                progress.show();
+                // retrieves from the database the fences made by the user
+                mDatabase.child("users").child(childID).child("alarms").child(fenceName).addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+
+
+                        if(dataSnapshot.exists()) {
+                                Db_fence fence = dataSnapshot.getValue(Db_fence.class);
+
+                                String fenceName = dataSnapshot.getKey();
+                            // String foo[] = spinnerList.toArray(new String[0]);
+                        } else {
+
+                        }
+                        progress.dismiss();
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {}
+                });
+
+
+            } // to close the onItemSelected
+            public void onNothingSelected(AdapterView<?> parent)
+            {
 
             }
         });
-
-
-
 
         // ArrayAdapter<String > gender_adapter = new ArrayAdapter<String> (getActivity(), R.layout.spinner_style,gender_spinner );
 
