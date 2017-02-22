@@ -324,6 +324,7 @@ public class Guardian_ChildProfileOverviewActivity extends FragmentActivity impl
                 return;
             }
             final Intent i = new Intent(Guardian_ChildProfileOverviewActivity.this, Guardian_DashboardActivity.class);
+            i.putExtra("userid",currentlySelectedUserID);
             startActivity(i);
             }
         });

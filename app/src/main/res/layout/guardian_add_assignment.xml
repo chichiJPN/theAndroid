@@ -13,11 +13,26 @@
         android:paddingTop="40dp"
         android:orientation="vertical"
     >
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Select Assignment Options:"
+            android:textSize="14sp"
+            android:layout_gravity="left"
+            android:layout_marginBottom="10sp"
+            />
+        <Spinner
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/spinner_assignmentOption"
+            android:layout_marginBottom="10sp"
+            android:background="#FFFFFF"
+            />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Assignement Name:"
+            android:text="Assignment Name:"
             android:textSize="14sp"
             android:layout_gravity="left"
             android:layout_marginBottom="10sp"
@@ -31,29 +46,48 @@
             android:id="@+id/editText_assignmentName"
             android:layout_marginBottom="10sp"
             />
+
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Select Assignment Options:"
+            android:text="Number of completions for reward?"
+            android:textSize="14sp"
+            android:layout_gravity="left"
+            android:layout_marginBottom="10sp"
+        />
+
+        <EditText
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:hint="Number of completions"
+            android:ems="10"
+            android:id="@+id/editText_NumCompletionForReward"
+            android:layout_marginBottom="10sp"
+            />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Time Start:"
+            android:datePickerMode="spinner"
             android:textSize="14sp"
             android:layout_gravity="left"
             android:layout_marginBottom="10sp"
             />
-
-
-        <Spinner
-            android:layout_width="match_parent"
+        <TimePicker
+            android:id="@+id/timepicker_timeStart"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/spinner_assignmentOption"
-            android:layout_marginBottom="10sp"
-            android:background="#FFFFFF"
-            />
-
+            android:timePickerMode="spinner"
+            android:layout_gravity="center"
+            android:layout_weight="1" >
+        </TimePicker>
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Date Start:"
+            android:datePickerMode="spinner"
             android:textSize="14sp"
             android:layout_gravity="left"
             android:layout_marginBottom="10sp"
@@ -63,6 +97,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/datePicker_startDate"
+            android:datePickerMode="spinner"
             android:calendarViewShown="false"
             android:spinnersShown="true"
             android:layout_marginBottom="10sp"
@@ -80,6 +115,7 @@
         <DatePicker
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:datePickerMode="spinner"
             android:layout_marginBottom="10sp"
             android:id="@+id/datePicker_endDate" />
 

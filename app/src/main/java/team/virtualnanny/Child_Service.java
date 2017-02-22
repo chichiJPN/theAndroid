@@ -104,6 +104,7 @@ public class Child_Service extends Service {
         });
     }
 
+
     @Override
     public void onDestroy() {
         Log.d("service","onDestroy");
@@ -112,6 +113,7 @@ public class Child_Service extends Service {
             myManager.removeUpdates(myLocationListener);
         }
     }
+
     private boolean checkLocationPermission(){
         Log.d("service","checkLocationPermission");
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {

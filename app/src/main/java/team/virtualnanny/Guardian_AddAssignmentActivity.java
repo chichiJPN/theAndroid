@@ -1,15 +1,34 @@
 package team.virtualnanny;
 
 
+import android.app.ProgressDialog;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.DatePicker;
+import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.Spinner;
+import android.widget.TextView;
+import android.widget.TimePicker;
+
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DatabaseReference;
 
 
 public class Guardian_AddAssignmentActivity extends AppCompatActivity {
+
+    private ProgressDialog progress;
+    private FirebaseAuth mAuth;
+    private FirebaseAuth.AuthStateListener mAuthListener;
+    private DatabaseReference mDatabase;
+    private String childID;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -19,16 +38,79 @@ public class Guardian_AddAssignmentActivity extends AppCompatActivity {
         getSupportActionBar().setDisplayHomeAsUpEnabled(true); // enables back button on the action bar
         getSupportActionBar().setBackgroundDrawable(new ColorDrawable(0xFF000000)); // sets the actions bar as black
 
+        if (savedInstanceState == null) {
+            Bundle extras = getIntent().getExtras();
+            if(extras == null) {
+                childID = null;
+            } else {
+                childID = extras.getString("userid");
+            }
+        } else {
+            childID = (String) savedInstanceState.getSerializable("userid");
+        }
+
         String[] arraySpinner = new String[] {
-                "1", "2", "3", "4", "5"
+                "Reminder", "Task", "Steps"
         };
-        Spinner s = (Spinner) findViewById(R.id.spinner_assignmentOption);
+
+        final Spinner spinnerAssignmentOption = (Spinner) findViewById(R.id.spinner_assignmentOption);
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,
                 android.R.layout.simple_spinner_item, arraySpinner);
-        s.setAdapter(adapter);
-        s.setPadding(0,30,0,30);
+        spinnerAssignmentOption.setAdapter(adapter);
+        spinnerAssignmentOption.setPadding(0,30,0,30);
 
+        final EditText editText_assignmentName = (EditText) findViewById(R.id.editText_assignmentName);
+        final TimePicker timepicker_timeStart = (TimePicker) findViewById(R.id.timepicker_timeStart);
+        final DatePicker datePicker_startDate = (DatePicker) findViewById(R.id.datePicker_startDate);
+        final DatePicker datePicker_endDate = (DatePicker) findViewById(R.id.datePicker_endDate);
+        final EditText editText_consequence = (EditText) findViewById(R.id.editText_consequence);
+        final EditText editText_reward = (EditText) findViewById(R.id.editText_reward);
+        Button btn_set = (Button) findViewById(R.id.btn_set);
 
+        btn_set.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String assignmentName = editText_assignmentName.getText().toString().trim();
+                String assignmentType = spinnerAssignmentOption.getSelectedItem().toString();
+                int startHour = timepicker_timeStart.getCurrentHour();
+                int startMinute = timepicker_timeStart.getCurrentMinute();
+                int startMonth = datePicker_startDate.getMonth();
+                int startDay = datePicker_startDate.getDayOfMonth();
+                int endMonth = datePicker_endDate.getMonth();
+                int endDay = datePicker_endDate.getDayOfMonth();
+                String consequence = editText_consequence.getText().toString().trim();
+                String reward = editText_reward.getText().toString().trim();
+                Db_assignment assignment = new Db_assignment(
+                        "Set",
+                        startHour,
+                        startMinute,
+                        startMonth,
+                        startDay,
+                        endMonth,
+                        endDay,
+                        0,
+                        0,
+                        consequence,
+                        reward
+                );
+
+                switch(assignmentType) {
+
+                    case "Reminder":
+                        mDatabase.child(childID)
+                                .child("assignments")
+                                .child(assignmentType)
+                                .child(assignmentName)
+                                .setValue(assignment);
+                        break;
+                    case "Task":
+                        break;
+                    case "Steps":
+                        break;
+                }
+
+            }
+        });
     }
 
     @Override

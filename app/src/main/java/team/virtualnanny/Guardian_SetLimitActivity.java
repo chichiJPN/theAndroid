@@ -58,7 +58,6 @@ public class Guardian_SetLimitActivity extends AppCompatActivity {
             childID = (String) savedInstanceState.getSerializable("userid");
         }
 
-
         progress = new ProgressDialog(Guardian_SetLimitActivity.this);
         progress.setTitle("Loading");
         progress.setMessage("Wait while loading...");
