@@ -12,6 +12,11 @@ public class Db_user {
     private double lastLatitude;
     private double lastLongitude;
     private int numSteps;
+//    private boolean remoteLock
+//    private int lastLoginHour;
+//    private int lastLoginMinute;
+//    private double distanceTravelled;
+
     public Db_user() {}
 
     public Db_user(String firstName,
@@ -24,7 +29,11 @@ public class Db_user {
                    boolean phoneEnable,
                    double lastLatitude,
                    double lastLongitude,
-                   int numSteps) {
+                   int numSteps
+//                   boolean remoteLock,
+//                   int lastLoginHour,
+//                   int lastLoginMinute,
+                   ) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;

@@ -122,6 +122,26 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:text="Number of completions for reward:"
+            android:id="@+id/TextView_numCompletionsForReward"
+            android:textSize="14sp"
+            android:layout_gravity="left"
+            android:layout_marginBottom="10sp"
+            />
+
+        <EditText
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:hint="Consequence"
+            android:ems="10"
+            android:id="@+id/editText_numCompletionsForReward"
+            android:layout_marginBottom="10sp"
+            android:inputType="number"
+            />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:text="Add Consequence:"
             android:textSize="14sp"
             android:layout_gravity="left"
