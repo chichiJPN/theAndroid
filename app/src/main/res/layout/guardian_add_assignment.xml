@@ -33,6 +33,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Assignment Name:"
+            android:id="@+id/TextView_assignmentName"
             android:textSize="14sp"
             android:layout_gravity="left"
             android:layout_marginBottom="10sp"
@@ -47,27 +48,11 @@
             android:layout_marginBottom="10sp"
             />
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Number of completions for reward?"
-            android:textSize="14sp"
-            android:layout_gravity="left"
-            android:layout_marginBottom="10sp"
-        />
-
-        <EditText
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:hint="Number of completions"
-            android:ems="10"
-            android:id="@+id/editText_NumCompletionForReward"
-            android:layout_marginBottom="10sp"
-            />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:id="@+id/textView_timeStart"
             android:text="Time Start:"
             android:datePickerMode="spinner"
             android:textSize="14sp"
@@ -87,6 +72,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Date Start:"
+            android:id="@+id/TextView_startDate"
             android:datePickerMode="spinner"
             android:textSize="14sp"
             android:layout_gravity="left"
@@ -110,20 +96,21 @@
             android:textSize="14sp"
             android:layout_gravity="left"
             android:layout_marginBottom="10sp"
+            android:id="@+id/TextView_endDate" />
             />
 
         <DatePicker
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:datePickerMode="spinner"
+            android:calendarViewShown="false"
             android:layout_marginBottom="10sp"
             android:id="@+id/datePicker_endDate" />
-
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Number of completions for reward:"
-            android:id="@+id/TextView_numCompletionsForReward"
+            android:id="@+id/textView_NumCompletionForReward"
+            android:text="Number of completions for reward?"
             android:textSize="14sp"
             android:layout_gravity="left"
             android:layout_marginBottom="10sp"
@@ -132,11 +119,11 @@
         <EditText
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:hint="Consequence"
-            android:ems="10"
-            android:id="@+id/editText_numCompletionsForReward"
-            android:layout_marginBottom="10sp"
+            android:hint="Enter number of completions"
             android:inputType="number"
+            android:ems="10"
+            android:id="@+id/editText_NumCompletionForReward"
+            android:layout_marginBottom="10sp"
             />
 
         <TextView
@@ -151,7 +138,7 @@
         <EditText
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:hint="Consequence"
+            android:hint="Enter Consequence"
             android:ems="10"
             android:id="@+id/editText_consequence"
             android:layout_marginBottom="10sp"
@@ -169,7 +156,7 @@
         <EditText
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:hint="Reward"
+            android:hint="Enter Reward"
             android:ems="10"
             android:id="@+id/editText_reward"
             android:layout_marginBottom="10sp"

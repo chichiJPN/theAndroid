@@ -50,6 +50,7 @@ public class Child_Service extends Service {
     private MyLocationListener myLocationListener;
     private LocationManager myManager;
     private Location lastLocation;
+    private FirebaseAuth mAuth;
     private FirebaseAuth.AuthStateListener mAuthListener;
     private DatabaseReference userRef;
     private String currentUserID;
@@ -69,6 +70,7 @@ public class Child_Service extends Service {
         Log.d("service","onCreate");
         super.onCreate();
 
+        mAuth = FirebaseAuth.getInstance();
         mAuthListener = new FirebaseAuth.AuthStateListener() { // stop running if it finds that user is not logged in anymore
             @Override
             public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
@@ -79,7 +81,8 @@ public class Child_Service extends Service {
                 }
             }
         };
-
+        mAuth.addAuthStateListener(mAuthListener);
+		
         currentUserID = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
         userRef = FirebaseDatabase.getInstance().getReference().child("users").child(currentUserID);
@@ -112,6 +115,11 @@ public class Child_Service extends Service {
         if (myManager != null && myLocationListener != null) {
             myManager.removeUpdates(myLocationListener);
         }
+		
+        if (mAuthListener != null) {
+            mAuth.removeAuthStateListener(mAuthListener);
+        }
+		
     }
 
     private boolean checkLocationPermission(){

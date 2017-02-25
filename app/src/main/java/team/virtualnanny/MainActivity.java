@@ -24,11 +24,17 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+
 public class MainActivity extends AppCompatActivity {
 
     private FirebaseAuth mAuth;
     private FirebaseAuth.AuthStateListener mAuthListener;
     private ProgressDialog progress;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -42,7 +48,7 @@ public class MainActivity extends AppCompatActivity {
         mAuthListener = new FirebaseAuth.AuthStateListener() {
             @Override
             public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
-                FirebaseUser user = firebaseAuth.getCurrentUser();
+                final FirebaseUser user = firebaseAuth.getCurrentUser();
                 if (user != null) {
 
                     progress.show();
@@ -51,8 +57,6 @@ public class MainActivity extends AppCompatActivity {
                         .addListenerForSingleValueEvent(new ValueEventListener() {
                             @Override
                             public void onDataChange(DataSnapshot dataSnapshot) {
-
-
                                 Db_user dbuser = dataSnapshot.getValue(Db_user.class);
                                 Intent intent;
                                 if(dbuser.getRole().equals("Parent")) {
@@ -60,6 +64,12 @@ public class MainActivity extends AppCompatActivity {
                                 } else {
                                     intent = new Intent(getApplicationContext(), Child_ChildOverviewActivity.class);
                                 }
+
+                                String currentDate = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
+                                Map<String, Object> lastLogin = new HashMap<String, Object>(); //
+                                lastLogin.put("lastLogin", currentDate);
+
+                                FirebaseDatabase.getInstance().getReference().child("users").child(user.getUid()).updateChildren(lastLogin);
 
                                 progress.dismiss();
 
@@ -110,28 +120,6 @@ public class MainActivity extends AppCompatActivity {
                                 }
                             }
                         });
-
-                /*
-
-                if(username.equals("guardian")) {
-                    Toast.makeText(getApplicationContext(), "Going to guardian page!",
-                            Toast.LENGTH_SHORT).show();
-                    final Intent i = new Intent(MainActivity.this, Guardian_ChildProfileOverviewActivity.class);
-                    startActivity(i);
-
-                } else if(username.equals("child")){
-                    final Intent i = new Intent(MainActivity.this, Child_ChildOverviewActivity.class);
-                    startActivity(i);
-                    Toast.makeText(getApplicationContext(), "Going to child page!",
-                            Toast.LENGTH_SHORT).show();
-                } else {
-                    Toast.makeText(getApplicationContext(), "Username is " + username + ".\nEnter 'guardian' as username to go to guardian page.\n Enter 'child' as username to go to child page.",
-                            Toast.LENGTH_SHORT).show();
-                }
-
-                */
-
-
             }
         });
 
@@ -158,38 +146,6 @@ public class MainActivity extends AppCompatActivity {
                         Toast.LENGTH_SHORT).show();
             }
         });
-
-        /*
-
-        Button button = (Button) findViewById(R.id.btn_dbwrite);
-        button.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                FirebaseDatabase database = FirebaseDatabase.getInstance();
-                DatabaseReference myRef = database.getReference("message");
-
-                myRef.setValue("Hello, World!");
-
-                myRef.addValueEventListener(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        // This method is called once with the initial value and again
-                        // whenever data at this location is updated.
-                        String value = dataSnapshot.getValue(String.class);
-                        Toast.makeText(getApplicationContext(), "Value is: " + value,
-                                Toast.LENGTH_SHORT).show();
-                    }
-
-                    @Override
-                    public void onCancelled(DatabaseError error) {
-                        // Failed to read value
-                        Log.w(TAG, "Failed to read value.", error.toException());
-                    }
-                });
-
-            }
-        });
-        */
     }
 
     @Override
@@ -204,5 +160,5 @@ public class MainActivity extends AppCompatActivity {
         if (mAuthListener != null) {
             mAuth.removeAuthStateListener(mAuthListener);
         }
-   }
+	}
 }

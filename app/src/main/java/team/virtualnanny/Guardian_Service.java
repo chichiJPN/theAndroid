@@ -48,6 +48,8 @@ public class Guardian_Service extends Service {
     private LocationManager myManager;
     private Location lastLocation;
     private FirebaseAuth.AuthStateListener mAuthListener;
+    private FirebaseAuth mAuth;
+
     private DatabaseReference userRef;
     private String currentUserID;
     private int numSteps = 0;
@@ -69,11 +71,15 @@ public class Guardian_Service extends Service {
                 FirebaseUser user = firebaseAuth.getCurrentUser();
                 if (user == null) {
                     Toast.makeText(getApplicationContext(), "Service is stopped", Toast.LENGTH_SHORT).show();
+                    Log.d("Service","service is stopping");
                     Guardian_Service.this.stopSelf();
                 }
             }
         };
 
+        mAuth = FirebaseAuth.getInstance();
+        mAuth.addAuthStateListener(mAuthListener);
+		
         currentUserID = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
         userRef = FirebaseDatabase.getInstance().getReference().child("users").child(currentUserID);
@@ -105,6 +111,9 @@ public class Guardian_Service extends Service {
         if (myManager != null && myLocationListener != null) {
             myManager.removeUpdates(myLocationListener);
         }
+        if (mAuthListener != null) {
+            mAuth.removeAuthStateListener(mAuthListener);
+        }		
     }
     private boolean checkLocationPermission(){
         Log.d("service","checkLocationPermission");

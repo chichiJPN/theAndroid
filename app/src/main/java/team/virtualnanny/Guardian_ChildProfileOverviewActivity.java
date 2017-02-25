@@ -89,23 +89,24 @@ public class Guardian_ChildProfileOverviewActivity extends FragmentActivity impl
         existingMarkers = new ArrayList<Marker>();
         existingCircles = new ArrayList<Circle>();
 
+		// instantiates the progress bar
         progress = new ProgressDialog(Guardian_ChildProfileOverviewActivity.this);
         progress.setTitle("Loading");
         progress.setMessage("Wait while loading...");
         progress.setCancelable(false); // disable dismiss by tapping outside of the dialog
 
-        mDatabase = FirebaseDatabase.getInstance().getReference();
+        mDatabase = FirebaseDatabase.getInstance().getReference();		// gets a reference to the database
         mAuth = FirebaseAuth.getInstance();
         mAuthListener = new FirebaseAuth.AuthStateListener() {
-            @Override
-            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
-            FirebaseUser user = firebaseAuth.getCurrentUser();
-            if (user == null) {
-                Intent intent = new Intent(getApplicationContext(), MainActivity.class);
-                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                finish();
-                startActivity(intent);
-            }
+			@Override
+			public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
+				FirebaseUser user = firebaseAuth.getCurrentUser();
+				if (user == null) {
+					Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+					intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+					finish();
+					startActivity(intent);
+				}
             }
         };
         requestPermissionAccessLocation();
@@ -374,17 +375,7 @@ public class Guardian_ChildProfileOverviewActivity extends FragmentActivity impl
         mMap.moveCamera(center);
         mMap.animateCamera(zoom);
     }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-    }
-
+	
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
@@ -396,6 +387,22 @@ public class Guardian_ChildProfileOverviewActivity extends FragmentActivity impl
         mMap.setMyLocationEnabled(true);
 
     }
+	
+    @Override
+    public void onStart() {
+        super.onStart();
+        mAuth.addAuthStateListener(mAuthListener);
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        if (mAuthListener != null) {
+            mAuth.removeAuthStateListener(mAuthListener);
+        }
+	}
+
+
 
     private void requestPermissionAccessLocation(){
         Log.d("yes","requestPermissionAccessLocation");

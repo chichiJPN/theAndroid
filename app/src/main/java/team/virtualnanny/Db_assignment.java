@@ -58,12 +58,14 @@ public class Db_assignment {
     public int getEndDay() {
         return endDay;
     }
+    public String getConsequence() { return consequence; }
+    public String getReward() { return reward; }
+
     public int getNumCompletion() {
         return numCompletion;
     }
+
     public int getNumCompletionForReward() {
         return numCompletionForReward;
     }
-    public String getConsequence() { return consequence; }
-    public String getReward() { return reward; }
 }

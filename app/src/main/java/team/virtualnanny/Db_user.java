@@ -12,10 +12,8 @@ public class Db_user {
     private double lastLatitude;
     private double lastLongitude;
     private int numSteps;
-//    private boolean remoteLock
-//    private int lastLoginHour;
-//    private int lastLoginMinute;
-//    private double distanceTravelled;
+    private int numStepsToday;
+    private String lastLogin;
 
     public Db_user() {}
 
@@ -29,10 +27,9 @@ public class Db_user {
                    boolean phoneEnable,
                    double lastLatitude,
                    double lastLongitude,
-                   int numSteps
-//                   boolean remoteLock,
-//                   int lastLoginHour,
-//                   int lastLoginMinute,
+                   int numSteps,
+                   int numStepsToday,
+                   String lastLogin
                    ) {
         this.firstName = firstName;
         this.lastName = lastName;
@@ -45,6 +42,8 @@ public class Db_user {
         this.lastLatitude = lastLatitude; // coordinate of UC
         this.lastLongitude = lastLongitude; // coordinate of UC
         this.numSteps = numSteps; // coordinate of UC
+        this.numStepsToday = numStepsToday;
+        this.lastLogin = lastLogin;
     }
     public String getFirstName() {
         return firstName;
@@ -67,4 +66,12 @@ public class Db_user {
     public double getLastLatitude() {return lastLatitude; }
     public double getLastLongitude() {return lastLongitude; }
     public int getNumSteps() {return numSteps; }
+
+    public int getNumStepsToday() {
+        return numStepsToday;
+    }
+
+    public String getLastLogin() {
+        return lastLogin;
+    }
 }

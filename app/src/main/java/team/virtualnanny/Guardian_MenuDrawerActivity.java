@@ -43,9 +43,10 @@ public class Guardian_MenuDrawerActivity extends AppCompatActivity {
 
     private FirebaseAuth mAuth;
     private FirebaseAuth.AuthStateListener mAuthListener;
-    private String m_Text = "";
     private DatabaseReference mDatabase;
     private ProgressDialog progress;
+    private String m_Text = "";
+	
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -260,10 +261,14 @@ public class Guardian_MenuDrawerActivity extends AppCompatActivity {
     @Override
     public void onStart() {
         super.onStart();
+        mAuth.addAuthStateListener(mAuthListener);
     }
 
     @Override
     public void onStop() {
         super.onStop();
-    }
+        if (mAuthListener != null) {
+            mAuth.removeAuthStateListener(mAuthListener);
+        }
+	}
 }

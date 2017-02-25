@@ -125,8 +125,6 @@ public class Guardian_SetFenceActivity extends AppCompatActivity implements OnMa
                 mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
                     @Override
                     public void onMapClick(LatLng point) {
-
-
                         Location location = new Location("Test");
                         location.setLatitude(point.latitude);
                         location.setLongitude(point.longitude);
@@ -260,7 +258,6 @@ public class Guardian_SetFenceActivity extends AppCompatActivity implements OnMa
                                 }
                             }
 
-
                             if(flag == false ) {
                                 marker.remove();
                                 mapCircle.remove();
@@ -331,31 +328,6 @@ public class Guardian_SetFenceActivity extends AppCompatActivity implements OnMa
         return super.onOptionsItemSelected(item);
     }
 
-    public double CalculationByDistance(LatLng StartP, LatLng EndP) {
-        int Radius = 6371;// radius of earth in Km
-        double lat1 = StartP.latitude;
-        double lat2 = EndP.latitude;
-        double lon1 = StartP.longitude;
-        double lon2 = EndP.longitude;
-        double dLat = Math.toRadians(lat2 - lat1);
-        double dLon = Math.toRadians(lon2 - lon1);
-        double a = Math.sin(dLat / 2) * Math.sin(dLat / 2)
-                + Math.cos(Math.toRadians(lat1))
-                * Math.cos(Math.toRadians(lat2)) * Math.sin(dLon / 2)
-                * Math.sin(dLon / 2);
-        double c = 2 * Math.asin(Math.sqrt(a));
-        double valueResult = Radius * c;
-        double km = valueResult / 1;
-        DecimalFormat newFormat = new DecimalFormat("####");
-        int kmInDec = Integer.valueOf(newFormat.format(km));
-        double meter = valueResult % 1000;
-        int meterInDec = Integer.valueOf(newFormat.format(meter));
-        Log.i("Radius Value", "" + valueResult + "   KM  " + kmInDec
-                + " Meter   " + meterInDec);
-
-        return Radius * c;
-    }
-
     /**
      * Manipulates the map once available.
      * This callback is triggered when the map is ready to be used.
@@ -419,4 +391,18 @@ public class Guardian_SetFenceActivity extends AppCompatActivity implements OnMa
 
     }
 
+    @Override
+    public void onStart() {
+        super.onStart();
+        mAuth.addAuthStateListener(mAuthListener);
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        if (mAuthListener != null) {
+            mAuth.removeAuthStateListener(mAuthListener);
+        }
+	}	
+	
 }

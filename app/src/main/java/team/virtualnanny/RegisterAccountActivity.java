@@ -30,6 +30,8 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.IgnoreExtraProperties;
 import com.google.firebase.database.ValueEventListener;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -72,7 +74,10 @@ public class RegisterAccountActivity extends AppCompatActivity {
                         double lastLongitude = 123.8950; // UC coordinates
                         int numSteps = 0;
                         boolean enablePhone = false;
-                        Db_user dbuser = new Db_user(firstName,lastName,email,phone,gender,role,address, enablePhone, lastLatitude, lastLongitude, numSteps); //adds a new user to the database
+                        String currentDate = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
+                        //2017-02-25
+
+                        Db_user dbuser = new Db_user(firstName,lastName,email,phone,gender,role,address, enablePhone, lastLatitude, lastLongitude, numSteps,0,currentDate); //adds a new user to the database
                         mDatabase.child("users").child(user.getUid()).setValue(dbuser);
                         Db_limit dblimit = new Db_limit(false,24, false,false,false,false,false,false,false);
                         mDatabase.child("users").child(user.getUid()).child("limit").setValue(dblimit);
