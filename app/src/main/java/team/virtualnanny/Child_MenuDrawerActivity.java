@@ -124,7 +124,7 @@ public class Child_MenuDrawerActivity extends AppCompatActivity {
                 switch(Slecteditem) {
                     case "Notifications":
                         break;
-                    case "Messages":
+                    case "Send SOS":
                         break;
                     case "Add Parent Account":
                         AlertDialog.Builder builder = new AlertDialog.Builder(Child_MenuDrawerActivity.this);

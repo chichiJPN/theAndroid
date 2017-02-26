@@ -100,6 +100,8 @@ public class Guardian_SetTasksActivity extends AppCompatActivity {
 
         btn_add_task.setOnClickListener(new addTask());
         btn_add_task_text.setOnClickListener(new addTask());
+
+
     }
 
     private void refreshTaskList() {
@@ -138,16 +140,16 @@ public class Guardian_SetTasksActivity extends AppCompatActivity {
                         tvTaskName.setGravity(Gravity.CENTER);
                         tvTaskName.setEms(10);
                         tvTaskName.setLayoutParams(new LinearLayout.LayoutParams(
-                                LinearLayout.LayoutParams.WRAP_CONTENT,
-                                LinearLayout.LayoutParams.WRAP_CONTENT, 3.0f));
+                                0,
+                                LinearLayout.LayoutParams.WRAP_CONTENT, 7.0f));
 
 
                         ImageView imageTaskDetails = new ImageView(getApplicationContext());
                         imageTaskDetails.setBackgroundResource(R.drawable.edit_blue_64x64);
 
                         imageTaskDetails.setLayoutParams(new LinearLayout.LayoutParams(
-                                LinearLayout.LayoutParams.WRAP_CONTENT,
-                                LinearLayout.LayoutParams.WRAP_CONTENT, 3.0f));
+                                0,
+                                LinearLayout.LayoutParams.WRAP_CONTENT, 2.0f));
                         imageTaskDetails.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
@@ -158,8 +160,8 @@ public class Guardian_SetTasksActivity extends AppCompatActivity {
                         ImageView imageTaskEdit = new ImageView(getApplicationContext());
                         imageTaskEdit.setBackgroundResource(R.drawable.edit_blue_64x64);
                         imageTaskEdit.setLayoutParams(new LinearLayout.LayoutParams(
-                                LinearLayout.LayoutParams.WRAP_CONTENT,
-                                LinearLayout.LayoutParams.WRAP_CONTENT, 3.0f));
+                                0,
+                                LinearLayout.LayoutParams.WRAP_CONTENT, 2.0f));
                         imageTaskEdit.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
@@ -171,7 +173,7 @@ public class Guardian_SetTasksActivity extends AppCompatActivity {
                         imageTaskDelete.setBackgroundResource(R.drawable.trash_blue_32x32);
                         imageTaskDelete.setLayoutParams(new LinearLayout.LayoutParams(
                                 LinearLayout.LayoutParams.WRAP_CONTENT,
-                                LinearLayout.LayoutParams.WRAP_CONTENT, 3.0f));
+                                LinearLayout.LayoutParams.WRAP_CONTENT, 2.0f));
                         imageTaskDelete.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {

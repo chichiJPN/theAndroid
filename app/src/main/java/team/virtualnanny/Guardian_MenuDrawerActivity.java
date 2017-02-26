@@ -88,7 +88,6 @@ public class Guardian_MenuDrawerActivity extends AppCompatActivity {
         ListView list;
         final String[] itemname ={
                 "Notifications",
-                "Messages",
                 "Add Child Account",
                 "My parent ID",
                 "Logout",
@@ -97,7 +96,6 @@ public class Guardian_MenuDrawerActivity extends AppCompatActivity {
 
         Integer[] imgid={
                 R.drawable.notifications,
-                R.drawable.message,
                 R.drawable.add_user,
                 R.drawable.add_user,
                 R.drawable.logout,
@@ -125,8 +123,6 @@ public class Guardian_MenuDrawerActivity extends AppCompatActivity {
                 * */
                 switch(Slecteditem) {
                     case "Notifications":
-                        break;
-                    case "Messages":
                         break;
                     case "Add Child Account":
 

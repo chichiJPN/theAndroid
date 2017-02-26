@@ -74,11 +74,12 @@ public class Guardian_ChildProfileOverviewActivity extends FragmentActivity impl
     private ProgressDialog progress;
     private String currentlySelectedUserID = null;
     private String currentUserNumber = null;
+    private DatabaseReference currentUserReference;
+    private ValueEventListener valueEventListener;
     private Marker childMarker;
     private List<Db_fence> existingFences;
     private List<Marker> existingMarkers;
     private List<Circle> existingCircles;
-    private ChildLocationUpdate ChildLocationThread;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -109,6 +110,7 @@ public class Guardian_ChildProfileOverviewActivity extends FragmentActivity impl
 				}
             }
         };
+
         requestPermissionAccessLocation();
         Intent intent = new Intent(getApplicationContext(), Guardian_Service.class);
         startService(intent);
@@ -119,11 +121,40 @@ public class Guardian_ChildProfileOverviewActivity extends FragmentActivity impl
 
         final LinearLayout panel_header = (LinearLayout) findViewById(R.id.panel_header);
 
+        valueEventListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                Log.d("Child overview" , "data changed");
+
+                Db_user user = dataSnapshot.getValue(Db_user.class);
+                currentUserNumber = user.getPhone();
+
+                String firstName = user.getFirstName();
+                String lastName = user.getLastName();
+                String address = user.getAddress();
+
+                int numSteps = user.getNumSteps();
+
+                tv_name.setText(firstName + " "+ lastName);
+                tv_address.setText(address);
+                textview_steps.setText("" +numSteps);
+                animateAndZoomToLocation(user.getLastLatitude(), user.getLastLongitude());
+                childMarker.setTitle(firstName + "" + lastName);
+                progress.dismiss();
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {}
+        };
+
         final DatabaseReference users = mDatabase.child("users");
         final String currentUserID = mAuth.getCurrentUser().getUid();
         users.child(currentUserID).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
+
+                // checks if the guardian created any fences then saves the in variables
                 if(dataSnapshot.child("Fences").exists()) {
                     DataSnapshot Fences = dataSnapshot.child("Fences");
                     for(DataSnapshot snapshotFence : Fences.getChildren()) {
@@ -160,44 +191,30 @@ public class Guardian_ChildProfileOverviewActivity extends FragmentActivity impl
                     for (DataSnapshot snapshot : dataSnapshot.child("children").getChildren()) {
 
                         final String childID = snapshot.getValue().toString();
+
+                        // gets the parent of the child
                         users.child(childID).child("Parent").addListenerForSingleValueEvent(new ValueEventListener() {
                             @Override
                             public void onDataChange(DataSnapshot parent) {
+
+                                // checks if the parent exists and if the child's parent is the logged in user
                                 if(parent.exists() && parent.getValue().toString().equals(currentUserID)) {
                                     Log.d("User id is ",childID);
                                     ImageView ii = new ImageView(Guardian_ChildProfileOverviewActivity.this);
                                     ii.setBackgroundResource(R.drawable.profile_child1);
                                     ii.setTag(childID);
+                                    // adds a click listener when an image at the top is clicked
                                     ii.setOnClickListener(new View.OnClickListener() {
                                         @Override
                                         public void onClick(View v) {
                                             currentlySelectedUserID = (String)v.getTag();
                                             progress.show();
-                                            users.child(currentlySelectedUserID).addListenerForSingleValueEvent(new ValueEventListener() {
-                                                @Override
-                                                public void onDataChange(DataSnapshot dataSnapshot) {
-                                                    Db_user user = dataSnapshot.getValue(Db_user.class);
-                                                    currentUserNumber = user.getPhone();
+                                            if(currentUserReference != null) {
+                                                currentUserReference.removeEventListener(valueEventListener);
+                                            }
+                                            currentUserReference = users.child(currentlySelectedUserID);
 
-                                                    String firstName = user.getFirstName();
-                                                    String lastName = user.getLastName();
-                                                    String address = user.getAddress();
-
-                                                    int numSteps = user.getNumSteps();
-
-                                                    tv_name.setText(firstName + " "+ lastName);
-                                                    tv_address.setText(address);
-                                                    textview_steps.setText("" +numSteps);
-                                                    animateAndZoomToLocation(user.getLastLatitude(), user.getLastLongitude());
-                                                    childMarker.setTitle(firstName + "" + lastName);
-
-                                                    progress.dismiss();
-
-                                                }
-
-                                                @Override
-                                                public void onCancelled(DatabaseError databaseError) {}
-                                            });
+                                            currentUserReference.addValueEventListener(valueEventListener);
                                         }
                                     });
                                     panel_header.addView(ii);
@@ -364,7 +381,7 @@ public class Guardian_ChildProfileOverviewActivity extends FragmentActivity impl
         CameraUpdate center= CameraUpdateFactory.newLatLng(new LatLng(
                 Latitude,
                 Longitude));
-        CameraUpdate zoom=CameraUpdateFactory.zoomTo(13);
+//        CameraUpdate zoom=CameraUpdateFactory.zoomTo(13);
 
         if(childMarker == null) {
             MarkerOptions markerOptions = new MarkerOptions().position(new LatLng(Latitude, Longitude)).title("Sample");
@@ -373,18 +390,21 @@ public class Guardian_ChildProfileOverviewActivity extends FragmentActivity impl
 
         childMarker.setPosition(new LatLng(Latitude, Longitude));
         mMap.moveCamera(center);
-        mMap.animateCamera(zoom);
+//        mMap.animateCamera(zoom);
     }
 	
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
+        mMap.setMapType(GoogleMap.MAP_TYPE_SATELLITE);
+        CameraUpdate zoom=CameraUpdateFactory.zoomTo(20);
+        mMap.animateCamera(zoom);
+        mMap.setMyLocationEnabled(true);
         if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             return;
         }
 
 
-        mMap.setMyLocationEnabled(true);
 
     }
 	
@@ -402,8 +422,6 @@ public class Guardian_ChildProfileOverviewActivity extends FragmentActivity impl
         }
 	}
 
-
-
     private void requestPermissionAccessLocation(){
         Log.d("yes","requestPermissionAccessLocation");
         int permissionCheck1 = ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION);
@@ -411,27 +429,6 @@ public class Guardian_ChildProfileOverviewActivity extends FragmentActivity impl
             ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION }, 1234);
         }
     }
-
-    class ChildLocationUpdate extends Thread{
-        volatile boolean work = true;
-        LatLng latLng;
-        public ChildLocationUpdate() {
-        }
-
-        @Override
-        public void run() {
-            while (work){
-                try {
-                    Thread.sleep(400);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                //latLng = new LatLng(lat, lng);
-            }
-        }
-    }
-
-
 }
 
 

@@ -37,6 +37,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Calendar;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -51,9 +52,19 @@ public class Guardian_Service extends Service {
     private FirebaseAuth mAuth;
 
     private DatabaseReference userRef;
+    private DatabaseReference mDatabase;
+	
+	private DataSnapshot fenceSnapshot;
+	private DataSnapshot alarmSnapshot;
+	
+	
+	private List<Db_fence> existingFences;
+	private List<DataSnapshot> existingAlarms;
+	
     private String currentUserID;
     private int numSteps = 0;
     boolean busyFlag = false;
+	
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
@@ -62,7 +73,7 @@ public class Guardian_Service extends Service {
 
     @Override
     public void onCreate() {
-        Log.d("service","onCreate");
+        Log.d("Guardian service","onCreate");
         super.onCreate();
 
         mAuthListener = new FirebaseAuth.AuthStateListener() { // stop running if it finds that user is not logged in anymore
@@ -71,7 +82,7 @@ public class Guardian_Service extends Service {
                 FirebaseUser user = firebaseAuth.getCurrentUser();
                 if (user == null) {
                     Toast.makeText(getApplicationContext(), "Service is stopped", Toast.LENGTH_SHORT).show();
-                    Log.d("Service","service is stopping");
+                    Log.d("Guardian Service","service is stopping");
                     Guardian_Service.this.stopSelf();
                 }
             }
@@ -79,15 +90,22 @@ public class Guardian_Service extends Service {
 
         mAuth = FirebaseAuth.getInstance();
         mAuth.addAuthStateListener(mAuthListener);
-		
+		mDatabase = FirebaseDatabase.getInstance().getReference();
         currentUserID = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
+		
+		// get data of the current user ID
         userRef = FirebaseDatabase.getInstance().getReference().child("users").child(currentUserID);
-
-        userRef.child("numSteps").addListenerForSingleValueEvent(new ValueEventListener() {
+        userRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                numSteps = Integer.parseInt(dataSnapshot.getValue().toString());
+            public void onDataChange(DataSnapshot guardian) {
+				// retrieves the fences and saves them in variables
+                if(guardian.child("Fences").exists()) {
+                    fenceSnapshot = guardian.child("Fences");
+                }
+				
+				// initiates the pedometer module
+                numSteps = Integer.parseInt(guardian.child("numSteps").getValue().toString());
                 createNotificationForStartForeground();
                 myLocationListener = new MyLocationListener();
                 myManager = (LocationManager) getSystemService(LOCATION_SERVICE);
@@ -96,17 +114,106 @@ public class Guardian_Service extends Service {
                 }
                 myManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000, 0, myLocationListener);
                 myManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 5000, 0, myLocationListener);
-                Log.d("service","i have reached here");
+				// retrieves the fences and saves them in variables
+			
+
+
+				// get the children and add a listener to them
+				if(guardian.child("children").exists()) {
+					for(DataSnapshot snapshotChild : guardian.child("children").getChildren()) {
+                        final String childID = snapshotChild.getValue().toString();
+						
+						
+						mDatabase.child("users").child(childID).addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(DataSnapshot childSnapshot) {
+								if(childSnapshot.child("alarms").exists()) {
+                                    // get alarms then save values in a list
+//									alarmSnapshot = childSnapshot.child("alarms");
+								}
+							}
+
+                            @Override
+                            public void onCancelled(DatabaseError databaseError) {
+
+                            }
+                        });
+
+						
+						// adds a listener to child and is triggered each time data is changed
+                        mDatabase.child("users").child(childID).addValueEventListener(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(DataSnapshot childSnapshot) {
+								
+								DataSnapshot parent = childSnapshot.child("Parent");
+								
+								// checks first if guardian is the parent of the child
+                                if(parent.exists() && parent.getValue().toString().equals(currentUserID)) {
+									
+									// check if child is in fences
+									// if in danger fenc, create a notification
+									Db_user childUser = childSnapshot.getValue(Db_user.class);
+									
+									float[] distance = new float[2];
+									double childPosLatitude = childUser.getLastLatitude();
+									double childPosLongitude = childUser.getLastLongitude();
+									
+									// check if the child is in any fence
+									for(DataSnapshot snapshotFence : fenceSnapshot.getChildren() ) {
+										Db_fence fence = snapshotFence.getValue(Db_fence.class);
+										
+										Location.distanceBetween( childPosLatitude, childPosLongitude,
+																  fence.getLatitude(), fence.getLongitude(), distance);
+
+										if( distance[0] < fence.getRadius()  ){
+											if(fence.getSafety() == 2) {
+												// make noti that child is in circle
+												Toast.makeText(getBaseContext(), "Inside", Toast.LENGTH_LONG).show();
+											}
+										}
+									}
+									
+									// check if there are any alarms that should be rung
+                                    /*
+									for(DataSnapshot fence : fenceSnapshot.getChildren() ) {
+										Fence fence = fence.getValue(Db_fence.class);
+										
+										Location.distanceBetween( childPosLatitude, childPosLongitude.longitude,
+																  fence.getLatitude(), fence.getLongitude(), distance);
+
+										if( distance[0] < fence.getRadius()  ){
+											if(fence.getSafety() == 2) {
+												// make noti that child is in circle
+												Toast.makeText(getBaseContext(), "Inside", Toast.LENGTH_LONG).show();
+											}
+										}
+									}
+									*/
+									
+								}
+                            }
+
+                            @Override
+                            public void onCancelled(DatabaseError databaseError) {}
+                        });
+						
+						
+					}
+				}
+				
+                Log.d("Guardian service","i have reached here");
             }
 
             @Override
             public void onCancelled(DatabaseError databaseError) {}
         });
+		
+
     }
 
     @Override
     public void onDestroy() {
-        Log.d("service","onDestroy");
+        Log.d("Guardian service","onDestroy");
         super.onDestroy();
         if (myManager != null && myLocationListener != null) {
             myManager.removeUpdates(myLocationListener);
@@ -116,7 +223,7 @@ public class Guardian_Service extends Service {
         }		
     }
     private boolean checkLocationPermission(){
-        Log.d("service","checkLocationPermission");
+        Log.d("Guardian service","checkLocationPermission");
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             Toast.makeText(getApplicationContext(), "Need permission to use internet", Toast.LENGTH_SHORT).show();
             return false;
@@ -125,7 +232,7 @@ public class Guardian_Service extends Service {
     }
 
     private void createNotificationForStartForeground() {
-        Log.d("service","createNotificationForStartForeground");
+        Log.d("Guardian service","createNotificationForStartForeground");
 
         Intent intent = new Intent(getApplicationContext(), MapsActivity.class);
         intent.putExtra("fromNotification", true);
@@ -140,7 +247,7 @@ public class Guardian_Service extends Service {
         startForeground(1337, notification);
     }
     private void setLastLocation(Location location){
-        Log.d("service","setLastLocation");
+        Log.d("Guardian service","setLastLocation");
         busyFlag = true;
         float distance = 0;
         if(this.lastLocation != null){
@@ -171,7 +278,7 @@ public class Guardian_Service extends Service {
     class MyLocationListener implements LocationListener {
         @Override
         public void onLocationChanged(Location location) {
-            Log.d("service","onLocationChanged");
+            Log.d("Guardian service","onLocationChanged");
             if(location == null){
                 return;
             }

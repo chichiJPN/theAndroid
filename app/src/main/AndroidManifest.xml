@@ -40,6 +40,10 @@
             android:name=".Guardian_Service"
             android:label="Guardian Service" >
         </service>
+        <service
+            android:name=".Child_Service"
+            android:label="Child Service" >
+        </service>
 
         <activity
             android:name=".ForgotPasswordActivity"

@@ -15,14 +15,6 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         tools:context="team.virtualnanny.Guardian_ChildProfileOverviewActivity" />
-    <LinearLayout
-        android:id="@+id/panel_header"
-        android:layout_width="match_parent"
-        android:layout_height="95sp"
-        android:orientation="horizontal"
-        android:layout_alignParentTop="true"
-        android:background="@color/cast_expanded_controller_text_color" >
-    </LinearLayout>
 
     <LinearLayout
         android:id="@+id/panel_footer"

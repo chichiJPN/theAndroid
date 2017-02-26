@@ -55,9 +55,10 @@ public class Child_Service extends Service {
     private DatabaseReference userRef;
     private String currentUserID;
     private int numSteps = 0;
+    private int numStepsToday = 0;
     boolean busyFlag = false;
     int LOCATION_UPDATE_INTERVAL = 5 * 1000;  // 5 is the number of seconds
-    int LOCATION_HISTORY_UPDATE_INTERVAL = 600 * 1000; // 600 is the number of seconds = 10 minutes
+    int LOCATION_HISTORY_UPDATE_INTERVAL = 60 * 1000; // 600 is the number of seconds = 10 minutes
     int historyCounter = 0;
     @Nullable
     @Override
@@ -67,7 +68,7 @@ public class Child_Service extends Service {
 
     @Override
     public void onCreate() {
-        Log.d("service","onCreate");
+        Log.d("child service","onCreate");
         super.onCreate();
 
         mAuth = FirebaseAuth.getInstance();
@@ -76,7 +77,7 @@ public class Child_Service extends Service {
             public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
                 FirebaseUser user = firebaseAuth.getCurrentUser();
                 if (user == null) {
-                    Toast.makeText(getApplicationContext(), "Service is stopped", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getApplicationContext(), "Child Service is stopped", Toast.LENGTH_SHORT).show();
                     Child_Service.this.stopSelf();
                 }
             }
@@ -87,19 +88,20 @@ public class Child_Service extends Service {
 
         userRef = FirebaseDatabase.getInstance().getReference().child("users").child(currentUserID);
 
-        userRef.child("numSteps").addListenerForSingleValueEvent(new ValueEventListener() {
+        userRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                numSteps = Integer.parseInt(dataSnapshot.getValue().toString());
+                numSteps = Integer.parseInt(dataSnapshot.child("numSteps").getValue().toString());
+                numStepsToday = Integer.parseInt(dataSnapshot.child("numStepsToday").getValue().toString());
                 createNotificationForStartForeground();
                 myLocationListener = new MyLocationListener();
                 myManager = (LocationManager) getSystemService(LOCATION_SERVICE);
                 if(!checkLocationPermission()){
                     return;
                 }
-                myManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, LOCATION_UPDATE_INTERVAL, 0, myLocationListener);
-                myManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, LOCATION_UPDATE_INTERVAL, 0, myLocationListener);
-                Log.d("service","i have reached here");
+                myManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, myLocationListener);
+                myManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, myLocationListener);
+                Log.d("child service","the service has started");
             }
 
             @Override
@@ -132,9 +134,9 @@ public class Child_Service extends Service {
     }
 
     private void createNotificationForStartForeground() {
-        Log.d("service","createNotificationForStartForeground");
+        Log.d("child service","createNotificationForStartForeground");
 
-        Intent intent = new Intent(getApplicationContext(), MapsActivity.class);
+        Intent intent = new Intent(getApplicationContext(), Child_ChildOverviewActivity.class);
         intent.putExtra("fromNotification", true);
         PendingIntent pIntent = PendingIntent.getActivity(getApplicationContext(), (int) System.currentTimeMillis(), intent, 0);
         Notification notification = new NotificationCompat.Builder(this)
@@ -147,7 +149,7 @@ public class Child_Service extends Service {
         startForeground(1337, notification);
     }
     private void setLastLocation(Location location){
-        Log.d("service","setLastLocation");
+        Log.d("child service","setLastLocation");
         busyFlag = true;
         float distance = 0;
         if(this.lastLocation != null){
@@ -158,21 +160,23 @@ public class Child_Service extends Service {
 
         if(distance < 8) { // if distance walked is less than 25 meters
             numSteps += ((int)(distance / StepSize));
+            numStepsToday += ((int)(distance / StepSize));
         }
 
         double lastLatitude = location.getLatitude();
-        double lastLongitude = location.getLatitude();
+        double lastLongitude = location.getLongitude();
 
         Map<String, Object> numStepObject = new HashMap<String, Object>(); //
         numStepObject.put("numSteps", numSteps);
+        numStepObject.put("numStepsToday", numStepsToday);
         numStepObject.put("lastLatitude", lastLatitude);
         numStepObject.put("lastLongitude", lastLongitude);
         userRef.updateChildren(numStepObject); // updates numSteps, latitude and longitude of child
 
         if(historyCounter > LOCATION_HISTORY_UPDATE_INTERVAL) {
             Map<String, Object> locationHistory = new HashMap<String, Object>(); //
-            locationHistory.put("Latitude", numSteps);
-            locationHistory.put("Longitude", lastLatitude);
+            locationHistory.put("Latitude", lastLatitude);
+            locationHistory.put("Longitude", lastLongitude);
             String timestamp = String.valueOf(System.currentTimeMillis());
 
             userRef.child("locationHistory").child(timestamp).updateChildren(locationHistory);
@@ -192,31 +196,26 @@ public class Child_Service extends Service {
     class MyLocationListener implements LocationListener {
         @Override
         public void onLocationChanged(Location location) {
-            Log.d("service","onLocationChanged");
+            Log.d("child service","onLocationChanged");
             if(location == null){
                 return;
             }
 
             historyCounter += LOCATION_UPDATE_INTERVAL;
-            //Toast.makeText(Guardian_Service.this, "Latitude:"+location.getLatitude()+"Longitude:"+location.getLongitude(), Toast.LENGTH_LONG).show();
+            //Toast.makeText(Child_Service.this, "Latitude:"+location.getLatitude()+"Longitude:"+location.getLongitude(), Toast.LENGTH_LONG).show();
             if (location.getSpeed() * 60 * 60 / 1000 < 10 && location.getSpeed() * 60 * 60 / 1000 > 2 && busyFlag == false) {
+//            if (busyFlag == false) {
                 setLastLocation(location);
             }
         }
 
         @Override
-        public void onStatusChanged(String s, int i, Bundle bundle) {
-
-        }
+        public void onStatusChanged(String s, int i, Bundle bundle) {}
 
         @Override
-        public void onProviderEnabled(String s) {
-
-        }
+        public void onProviderEnabled(String s) {}
 
         @Override
-        public void onProviderDisabled(String s) {
-
-        }
+        public void onProviderDisabled(String s) {}
     }
 }
