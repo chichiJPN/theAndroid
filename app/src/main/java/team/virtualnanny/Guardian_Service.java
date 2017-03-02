@@ -2,6 +2,7 @@ package team.virtualnanny;
 
 import android.Manifest;
 import android.app.Notification;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
@@ -10,8 +11,12 @@ import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.media.AudioManager;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.os.Vibrator;
+import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
@@ -64,7 +69,11 @@ public class Guardian_Service extends Service {
     private String currentUserID;
     private int numSteps = 0;
     boolean busyFlag = false;
-	
+
+    Map<String, String> childLastFence = new HashMap<String, String>(); //
+    private MediaPlayer mp = null;
+    Vibrator v = null;
+    final String TAG = "Guardian Service";
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
@@ -75,6 +84,22 @@ public class Guardian_Service extends Service {
     public void onCreate() {
         Log.d("Guardian service","onCreate");
         super.onCreate();
+
+
+        // initialize danger sound
+        v = (Vibrator) getApplicationContext().getSystemService(getApplicationContext().VIBRATOR_SERVICE);
+        // Vibrate for 500 milliseconds
+        /*
+        mp = new MediaPlayer();
+        mp.setDataSource(R.raw.danger_mp3);
+        mp.prepare();
+        mp.start();
+
+        mp = MediaPlayer.create(getApplicationContext(), R.raw.danger_mp3);
+        mp.setAudioStreamType(AudioManager.STREAM_MUSIC);
+        mp.start();
+        */
+//        mp.setVolume(50,50);ZZZZ
 
         mAuthListener = new FirebaseAuth.AuthStateListener() { // stop running if it finds that user is not logged in anymore
             @Override
@@ -144,16 +169,16 @@ public class Guardian_Service extends Service {
                         mDatabase.child("users").child(childID).addValueEventListener(new ValueEventListener() {
                             @Override
                             public void onDataChange(DataSnapshot childSnapshot) {
-								
 								DataSnapshot parent = childSnapshot.child("Parent");
 								
 								// checks first if guardian is the parent of the child
                                 if(parent.exists() && parent.getValue().toString().equals(currentUserID)) {
-									
+
 									// check if child is in fences
 									// if in danger fenc, create a notification
 									Db_user childUser = childSnapshot.getValue(Db_user.class);
-									
+                                    Log.d(TAG,"A data in child "+childUser.getFirstName()+"changed!");
+
 									float[] distance = new float[2];
 									double childPosLatitude = childUser.getLastLatitude();
 									double childPosLongitude = childUser.getLastLongitude();
@@ -161,15 +186,61 @@ public class Guardian_Service extends Service {
 									// check if the child is in any fence
 									for(DataSnapshot snapshotFence : fenceSnapshot.getChildren() ) {
 										Db_fence fence = snapshotFence.getValue(Db_fence.class);
-										
+										String fenceName = snapshotFence.getKey();
 										Location.distanceBetween( childPosLatitude, childPosLongitude,
 																  fence.getLatitude(), fence.getLongitude(), distance);
+                                        Log.d(TAG, "distance is " + distance[0]);
 
+
+                                        // checks if the child is in the circle
 										if( distance[0] < fence.getRadius()  ){
-											if(fence.getSafety() == 2) {
+                                            String message = "";
+                                            Log.d("service", "I am inside fence");
+
+                                            // creates a variable to add to database
+                                            Db_notification dbNotification = new Db_notification();
+                                            dbNotification.setStatus("Not read");
+                                            dbNotification.setTitle(childUser.getFirstName() + " " + childUser.getLastName());
+
+
+
+											if(fence.getSafety() == 1) {
 												// make noti that child is in circle
-												Toast.makeText(getBaseContext(), "Inside", Toast.LENGTH_LONG).show();
-											}
+                                                Log.d("service", "I am inside safety zone");
+                                                message = childUser.getFirstName() + " " + childUser.getLastName() + " has entered " + fenceName + " safety zone. ";
+											} else {
+                                                Log.d("service", "I am inside danger zone");
+                                                message = "DANGER!" + childUser.getFirstName() + " " + childUser.getLastName() + " has entered " + fenceName + " danger zone. ";
+//                                                final MediaPlayer mp = MediaPlayer.create(Guardian_Service.this, Settings.System.DEFAULT_ALARM_ALERT_URI);
+
+
+                                            }
+
+                                            String lastFence = childLastFence.get(childID);
+
+                                            // checks if value is already set
+                                            // this is to prevent the notification from being alerted everytime
+                                            // the child's data changes
+                                            if(lastFence != null && lastFence.equals(fenceName)) {
+                                                Log.d(TAG, "User was already alerted");
+                                                break;
+                                            } else {
+                                                createNotificationForGeoFences(fence, message);
+                                            }
+
+
+
+                                            childLastFence.put(childID,fenceName);
+
+                                            dbNotification.setContent(message);
+                                            String timestamp = String.valueOf(System.currentTimeMillis());
+
+                                            // add notification item to guardian's database notifications
+                                            mDatabase.child("users").child(currentUserID).child("notifications").child(timestamp).setValue(dbNotification);
+
+
+
+                                            break;
 										}
 									}
 									
@@ -192,6 +263,43 @@ public class Guardian_Service extends Service {
 									
 								}
                             }
+
+                            private void createNotificationForGeoFences(Db_fence fence, String message) {
+                                Intent intent = new Intent(getApplicationContext(), Guardian_ChildProfileOverviewActivity.class);
+                                intent.putExtra("fromNotification", true);
+                                PendingIntent pIntent = PendingIntent.getActivity(getApplicationContext(), (int) System.currentTimeMillis(), intent, 0);
+
+                                Notification notification;
+
+                                if(fence.getSafety() == 1) {
+                                    Log.d(TAG, "Creating low priority");
+                                    notification = new NotificationCompat.Builder(Guardian_Service.this)
+                                            .setSmallIcon(R.drawable.fence)
+                                            .setContentTitle(getResources().getString(R.string.app_name))
+                                            .setContentText(message)
+                                            .setContentIntent(pIntent)
+                                            .setOngoing(false)
+                                            .build();
+                                } else {
+                                    Log.d(TAG, "Creating high priority");
+                                    v.vibrate(1000);
+                                    notification = new NotificationCompat.Builder(Guardian_Service.this)
+                                            .setSmallIcon(R.drawable.fence)
+                                            .setContentTitle(getResources().getString(R.string.app_name))
+                                            .setContentText(message)
+                                            .setContentIntent(pIntent)
+                                            .setOngoing(false)
+                                            .setDefaults(Notification.DEFAULT_ALL)
+                                            .setPriority(Notification.PRIORITY_MAX)
+                                            .build();
+                                }
+
+                                //startForeground(1337, notification);
+                                NotificationManager notifyMgr = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+                                notifyMgr.notify(1338,notification);
+
+                            }
+
 
                             @Override
                             public void onCancelled(DatabaseError databaseError) {}
@@ -234,7 +342,7 @@ public class Guardian_Service extends Service {
     private void createNotificationForStartForeground() {
         Log.d("Guardian service","createNotificationForStartForeground");
 
-        Intent intent = new Intent(getApplicationContext(), MapsActivity.class);
+        Intent intent = new Intent(getApplicationContext(), Guardian_ChildProfileOverviewActivity.class);
         intent.putExtra("fromNotification", true);
         PendingIntent pIntent = PendingIntent.getActivity(getApplicationContext(), (int) System.currentTimeMillis(), intent, 0);
         Notification notification = new NotificationCompat.Builder(this)
