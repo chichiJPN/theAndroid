@@ -8,12 +8,14 @@ public class Db_user {
     private String gender;
     private String role;
     private String address;
-    private boolean enablePhone;
+    private boolean remoteLock;
     private double lastLatitude;
     private double lastLongitude;
     private int numSteps;
     private int numStepsToday;
     private String lastLogin;
+    private boolean remoteTracking;
+    private boolean SOS;
 
     public Db_user() {}
 
@@ -24,12 +26,15 @@ public class Db_user {
                    String gender,
                    String role,
                    String address,
-                   boolean phoneEnable,
+                   boolean remoteLock,
                    double lastLatitude,
                    double lastLongitude,
                    int numSteps,
                    int numStepsToday,
-                   String lastLogin
+                   String lastLogin,
+                   boolean remoteTracking,
+                   boolean SOS
+
                    ) {
         this.firstName = firstName;
         this.lastName = lastName;
@@ -38,12 +43,14 @@ public class Db_user {
         this.gender = gender;
         this.role = role;
         this.address = address;
-        this.enablePhone = phoneEnable;
+        this.remoteLock = remoteLock;
         this.lastLatitude = lastLatitude; // coordinate of UC
         this.lastLongitude = lastLongitude; // coordinate of UC
         this.numSteps = numSteps; // coordinate of UC
         this.numStepsToday = numStepsToday;
         this.lastLogin = lastLogin;
+        this.remoteTracking = remoteTracking;
+        this.SOS = SOS;
     }
     public String getFirstName() {
         return firstName;
@@ -67,11 +74,28 @@ public class Db_user {
     public double getLastLongitude() {return lastLongitude; }
     public int getNumSteps() {return numSteps; }
 
+
     public int getNumStepsToday() {
         return numStepsToday;
     }
 
     public String getLastLogin() {
         return lastLogin;
+    }
+
+    public boolean getRemoteLock() {
+        return getRemoteLock();
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public boolean getRemoteTracking() {
+        return remoteTracking;
+    }
+
+    public boolean getSOS() {
+        return SOS;
     }
 }

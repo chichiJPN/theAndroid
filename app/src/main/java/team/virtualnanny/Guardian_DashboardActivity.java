@@ -244,6 +244,7 @@ public class Guardian_DashboardActivity extends AppCompatActivity {
         for (DataSnapshot taskSnapshot : tasks.getChildren()) {
             final String taskName = taskSnapshot.getKey();
             final Db_assignment task = taskSnapshot.getValue(Db_assignment.class);
+
             Log.d("Task Name", taskName);
 
             LinearLayout taskRow = new LinearLayout(Guardian_DashboardActivity.this);

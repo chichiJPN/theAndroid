@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.telephony.SmsManager;
 import android.text.InputType;
 import android.util.Log;
 import android.view.Gravity;
@@ -40,6 +41,9 @@ public class Child_MenuDrawerActivity extends AppCompatActivity {
     private FirebaseAuth.AuthStateListener mAuthListener;
     private DatabaseReference mDatabase;
     private ProgressDialog progress;
+    private String parentID = null;
+    private String parentNumber = null;
+    private String currentUserID;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,6 +52,20 @@ public class Child_MenuDrawerActivity extends AppCompatActivity {
         setTitle("Account");
         getSupportActionBar().setDisplayHomeAsUpEnabled(true); // enables back button on the action bar
         getSupportActionBar().setBackgroundDrawable(new ColorDrawable(0xFF000000)); // sets the actions bar as black
+
+        if (savedInstanceState == null) {
+            Bundle extras = getIntent().getExtras();
+            if(extras == null) {
+                parentID = null;
+                parentNumber = null;
+            } else {
+                parentID = extras.getString("parentid");
+                parentNumber = extras.getString("parentNumber");
+            }
+        } else {
+            parentID = (String) savedInstanceState.getSerializable("parentid");
+            parentNumber = (String) savedInstanceState.getSerializable("parentnumber");
+        }
 
         progress = new ProgressDialog(Child_MenuDrawerActivity.this);
         progress.setTitle("Loading");
@@ -69,10 +87,10 @@ public class Child_MenuDrawerActivity extends AppCompatActivity {
                 }
             }
         };
-		
-		ImageView profile_child = (ImageView) findViewById(R.id.profile_child);
 
-		
+        currentUserID = mAuth.getCurrentUser().getUid();
+
+        ImageView profile_child = (ImageView) findViewById(R.id.profile_child);
         LinearLayout profileBar = (LinearLayout) findViewById(R.id.profileBar) ;
 
         profileBar.setOnClickListener(new View.OnClickListener() {
@@ -86,7 +104,7 @@ public class Child_MenuDrawerActivity extends AppCompatActivity {
         ListView list;
         final String[] itemname ={
                 "Notifications",
-                "Messages",
+                "Send SOS",
                 "Add Parent Account",
                 "My ID",
                 "Logout",
@@ -114,17 +132,39 @@ public class Child_MenuDrawerActivity extends AppCompatActivity {
                 // TODO Auto-generated method stub
 
                 String Slecteditem = itemname[+position];
-                /*
-                *                 "Notifications",
-                "Messages",
-                "Add Child Account",
-                "Logout",
-                "About Us"
-                * */
+
                 switch(Slecteditem) {
                     case "Notifications":
                         break;
                     case "Send SOS":
+                        // check first if child has a parent before sending SOS
+                        if(parentID == null) {
+                            Toast.makeText(Child_MenuDrawerActivity.this, "Please add a parent first.",Toast.LENGTH_SHORT).show();
+                            return;
+                        }
+                        AlertDialog.Builder sosBuilder = new AlertDialog.Builder(Child_MenuDrawerActivity.this);
+                        sosBuilder.setTitle("Are you sure you want to send an SOS to your parent?");
+
+                        // Set up the buttons
+                        sosBuilder.setPositiveButton("I am in trouble!", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+
+//                                FirebaseDatabase.getInstance().getReference().child("users").child(currentUserID).child("SOS").setValue(true);
+                                SmsManager smsManager = SmsManager.getDefault(); // uses the default sim in your phone
+                                smsManager.sendTextMessage("09228076111",null,"Help! I am in trouble!",null,null);
+
+                            }
+                        });
+                        sosBuilder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.cancel();
+                            }
+                        });
+
+                        sosBuilder.show();
+
                         break;
                     case "Add Parent Account":
                         AlertDialog.Builder builder = new AlertDialog.Builder(Child_MenuDrawerActivity.this);

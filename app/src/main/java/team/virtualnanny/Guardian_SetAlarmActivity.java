@@ -49,6 +49,8 @@ public class Guardian_SetAlarmActivity extends AppCompatActivity {
     private ProgressDialog progress;
     private String childID;
     private String currentUserID;
+
+    // UI components
     private Switch switch_enable;
     private TimePicker timepicker;
     private TextView repeatSunday;
@@ -59,6 +61,15 @@ public class Guardian_SetAlarmActivity extends AppCompatActivity {
     private TextView repeatFriday;
     private TextView repeatSaturday;
 
+    // for debugging
+    String TAG = "Guardian_SetAlarm";
+
+    //values
+    String HEX_COLOR_BLACK = "#000000";
+    int INT_COLOR_BLACK = -16777216;
+    String HEX_COLOR_RED = "#FF0000";
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -67,6 +78,8 @@ public class Guardian_SetAlarmActivity extends AppCompatActivity {
         getSupportActionBar().setDisplayHomeAsUpEnabled(true); // enables back button on the action bar
         getSupportActionBar().setBackgroundDrawable(new ColorDrawable(0xFF000000)); // sets the actions bar as black
 
+
+        // get value that was passed in intent
         if (savedInstanceState == null) {
             Bundle extras = getIntent().getExtras();
             if(extras == null) {
@@ -78,6 +91,8 @@ public class Guardian_SetAlarmActivity extends AppCompatActivity {
             childID = (String) savedInstanceState.getSerializable("userid");
         }
 
+
+        // set up progressbar
         progress = new ProgressDialog(Guardian_SetAlarmActivity.this);
         progress.setTitle("Loading");
         progress.setMessage("Wait while loading...");
@@ -118,17 +133,22 @@ public class Guardian_SetAlarmActivity extends AppCompatActivity {
         spinnerFences.setAdapter(adapter);
 
         progress.show();
-        // retrieves from the database the fences made by the user
+
+        // retrieves the fences made by the guardian
         mDatabase.child("users").child(currentUserID).child("Fences").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if(dataSnapshot.exists()) {
                     for(DataSnapshot datasnapshot : dataSnapshot.getChildren()) {
                         Db_fence fence = datasnapshot.getValue(Db_fence.class);
-                        String fenceName = datasnapshot.getKey();
-                        adapter.add(fenceName);
+
+                        // alarms fetched should only be safe
+                        if(fence.getSafety() == 1) {
+                            String fenceName = datasnapshot.getKey();
+                            adapter.add(fenceName);
+                        }
                     }
-                    adapter.notifyDataSetChanged();
+                    adapter.notifyDataSetChanged(); // updates the spinner dropdown
                 }
                 progress.dismiss();
             }
@@ -191,13 +211,13 @@ public class Guardian_SetAlarmActivity extends AppCompatActivity {
                         switch_enable.isChecked(),
                         timepicker.getCurrentHour(),
                         timepicker.getCurrentMinute(),
-                        repeatSunday.getCurrentTextColor() != -1,
-                        repeatMonday.getCurrentTextColor() != -1,
-                        repeatTuesday.getCurrentTextColor() != -1,
-                        repeatWednesday.getCurrentTextColor() != -1,
-                        repeatThursday.getCurrentTextColor() != -1,
-                        repeatFriday.getCurrentTextColor() != -1,
-                        repeatSaturday.getCurrentTextColor() != -1
+                        repeatSunday.getCurrentTextColor() != INT_COLOR_BLACK,
+                        repeatMonday.getCurrentTextColor() != INT_COLOR_BLACK,
+                        repeatTuesday.getCurrentTextColor() != INT_COLOR_BLACK,
+                        repeatWednesday.getCurrentTextColor() != INT_COLOR_BLACK,
+                        repeatThursday.getCurrentTextColor() != INT_COLOR_BLACK,
+                        repeatFriday.getCurrentTextColor() != INT_COLOR_BLACK,
+                        repeatSaturday.getCurrentTextColor() != INT_COLOR_BLACK
                 );
 
                 final DatabaseReference users = mDatabase.child("users");
@@ -211,104 +231,106 @@ public class Guardian_SetAlarmActivity extends AppCompatActivity {
         repeatSunday.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(repeatSunday.getCurrentTextColor() == -1) { // current color is white
-                    repeatSunday.setTextColor(Color.parseColor("#FF0000"));
+                Log.d(TAG, ""+repeatSunday.getCurrentTextColor());
+                if(repeatSunday.getCurrentTextColor() == INT_COLOR_BLACK) { // current color is black
+                    repeatSunday.setTextColor(Color.parseColor(HEX_COLOR_RED));
                 } else {
-                    repeatSunday.setTextColor(Color.parseColor("#000000"));
+                    repeatSunday.setTextColor(Color.parseColor(HEX_COLOR_BLACK));
                 }
+                Log.d(TAG, "Sunday clicked");
             }
         });
         repeatMonday.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(repeatMonday.getCurrentTextColor() == -1) { // current color is white
-                    repeatMonday.setTextColor(Color.parseColor("#FF0000"));
+                if(repeatMonday.getCurrentTextColor() == INT_COLOR_BLACK) { // current color is black
+                    repeatMonday.setTextColor(Color.parseColor(HEX_COLOR_RED));
                 } else {
-                    repeatMonday.setTextColor(Color.parseColor("#000000"));
+                    repeatMonday.setTextColor(Color.parseColor(HEX_COLOR_BLACK));
                 }
             }
         });
         repeatTuesday.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(repeatTuesday.getCurrentTextColor() == -1) { // current color is white
-                    repeatTuesday.setTextColor(Color.parseColor("#FF0000"));
+                if(repeatTuesday.getCurrentTextColor() == INT_COLOR_BLACK) { // current color is black
+                    repeatTuesday.setTextColor(Color.parseColor(HEX_COLOR_RED));
                 } else {
-                    repeatTuesday.setTextColor(Color.parseColor("#000000"));
+                    repeatTuesday.setTextColor(Color.parseColor(HEX_COLOR_BLACK));
                 }
             }
         });
         repeatWednesday.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(repeatWednesday.getCurrentTextColor() == -1) { // current color is white
-                    repeatWednesday.setTextColor(Color.parseColor("#FF0000"));
+                if(repeatWednesday.getCurrentTextColor() == INT_COLOR_BLACK) { // current color is black
+                    repeatWednesday.setTextColor(Color.parseColor(HEX_COLOR_RED));
                 } else {
-                    repeatWednesday.setTextColor(Color.parseColor("#000000"));
+                    repeatWednesday.setTextColor(Color.parseColor(HEX_COLOR_BLACK));
                 }
             }
         });
         repeatThursday.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(repeatThursday.getCurrentTextColor() == -1) { // current color is white
-                    repeatThursday.setTextColor(Color.parseColor("#FF0000"));
+                if(repeatThursday.getCurrentTextColor() == INT_COLOR_BLACK) { // current color is black
+                    repeatThursday.setTextColor(Color.parseColor(HEX_COLOR_RED));
                 } else {
-                    repeatThursday.setTextColor(Color.parseColor("#000000"));
+                    repeatThursday.setTextColor(Color.parseColor(HEX_COLOR_BLACK));
                 }
             }
         });
         repeatFriday.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(repeatFriday.getCurrentTextColor() == -1) { // current color is white
-                    repeatFriday.setTextColor(Color.parseColor("#FF0000"));
+                if(repeatFriday.getCurrentTextColor() == INT_COLOR_BLACK) { // current color is black
+                    repeatFriday.setTextColor(Color.parseColor(HEX_COLOR_RED));
                 } else {
-                    repeatFriday.setTextColor(Color.parseColor("#000000"));
+                    repeatFriday.setTextColor(Color.parseColor(HEX_COLOR_BLACK));
                 }
             }
         });
         repeatSaturday.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(repeatSaturday.getCurrentTextColor() == -1) { // current color is white
-                    repeatSaturday.setTextColor(Color.parseColor("#FF0000"));
+                if(repeatSaturday.getCurrentTextColor() == INT_COLOR_BLACK) { // current color is black
+                    repeatSaturday.setTextColor(Color.parseColor(HEX_COLOR_RED));
                 } else {
-                    repeatSaturday.setTextColor(Color.parseColor("#FFFFFF"));
+                    repeatSaturday.setTextColor(Color.parseColor(HEX_COLOR_BLACK));
                 }
             }
         });
     }
 
     public void getAlarmDetails(String fenceName, String mode) {
-
+        progress.show();
         // retrieves from the database the fences made by the user
         mDatabase.child("users").child(childID).child("alarms").child(fenceName).child(mode).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
+            public void onDataChange(DataSnapshot alarmSnapshot) {
 
-                if(dataSnapshot.exists()) {
-                    Db_alarm alarm = dataSnapshot.getValue(Db_alarm.class);
+                if(alarmSnapshot.exists()) {
+                    Db_alarm alarm = alarmSnapshot.getValue(Db_alarm.class);
 
                     switch_enable.setChecked(alarm.getEnable());
                     timepicker.setCurrentHour(alarm.getHour());
                     timepicker.setCurrentMinute(alarm.getMinute());
-                    repeatSunday.setTextColor(alarm.getSunday() ? Color.parseColor("#FF0000") : Color.parseColor("#FFFFFF"));
-                    repeatMonday.setTextColor(alarm.getMonday() ? Color.parseColor("#FF0000") : Color.parseColor("#FFFFFF"));
-                    repeatTuesday.setTextColor(alarm.getTuesday() ? Color.parseColor("#FF0000") : Color.parseColor("#FFFFFF"));
-                    repeatWednesday.setTextColor(alarm.getWednesday() ? Color.parseColor("#FF0000") : Color.parseColor("#FFFFFF"));
-                    repeatThursday.setTextColor(alarm.getThursday() ? Color.parseColor("#FF0000") : Color.parseColor("#FFFFFF"));
-                    repeatFriday.setTextColor(alarm.getFriday() ? Color.parseColor("#FF0000") : Color.parseColor("#FFFFFF"));
-                    repeatSaturday.setTextColor(alarm.getSaturday() ? Color.parseColor("#FF0000") : Color.parseColor("#FFFFFF"));
+                    repeatSunday.setTextColor(alarm.getSunday() ? Color.parseColor(HEX_COLOR_RED) : Color.parseColor(HEX_COLOR_BLACK));
+                    repeatMonday.setTextColor(alarm.getMonday() ? Color.parseColor(HEX_COLOR_RED) : Color.parseColor(HEX_COLOR_BLACK));
+                    repeatTuesday.setTextColor(alarm.getTuesday() ? Color.parseColor(HEX_COLOR_RED) : Color.parseColor(HEX_COLOR_BLACK));
+                    repeatWednesday.setTextColor(alarm.getWednesday() ? Color.parseColor(HEX_COLOR_RED) : Color.parseColor(HEX_COLOR_BLACK));
+                    repeatThursday.setTextColor(alarm.getThursday() ? Color.parseColor(HEX_COLOR_RED) : Color.parseColor(HEX_COLOR_BLACK));
+                    repeatFriday.setTextColor(alarm.getFriday() ? Color.parseColor(HEX_COLOR_RED) : Color.parseColor(HEX_COLOR_BLACK));
+                    repeatSaturday.setTextColor(alarm.getSaturday() ? Color.parseColor(HEX_COLOR_RED) : Color.parseColor(HEX_COLOR_BLACK));
                 } else {
                     switch_enable.setChecked(false);
-                    repeatSunday.setTextColor(Color.parseColor("#000000"));
-                    repeatMonday.setTextColor(Color.parseColor("#000000"));
-                    repeatTuesday.setTextColor(Color.parseColor("#000000"));
-                    repeatWednesday.setTextColor(Color.parseColor("#000000"));
-                    repeatThursday.setTextColor(Color.parseColor("#000000"));
-                    repeatFriday.setTextColor(Color.parseColor("#000000"));
-                    repeatSaturday.setTextColor(Color.parseColor("#000000"));
+                    repeatSunday.setTextColor(Color.parseColor(HEX_COLOR_BLACK));
+                    repeatMonday.setTextColor(Color.parseColor(HEX_COLOR_BLACK));
+                    repeatTuesday.setTextColor(Color.parseColor(HEX_COLOR_BLACK));
+                    repeatWednesday.setTextColor(Color.parseColor(HEX_COLOR_BLACK));
+                    repeatThursday.setTextColor(Color.parseColor(HEX_COLOR_BLACK));
+                    repeatFriday.setTextColor(Color.parseColor(HEX_COLOR_BLACK));
+                    repeatSaturday.setTextColor(Color.parseColor(HEX_COLOR_BLACK));
                 }
                 progress.dismiss();
             }
@@ -338,5 +360,5 @@ public class Guardian_SetAlarmActivity extends AppCompatActivity {
         if (mAuthListener != null) {
             mAuth.removeAuthStateListener(mAuthListener);
         }
-	}
+    }
 }

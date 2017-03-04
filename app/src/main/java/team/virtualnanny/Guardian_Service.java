@@ -70,8 +70,9 @@ public class Guardian_Service extends Service {
     private int numSteps = 0;
     boolean busyFlag = false;
 
-    Map<String, String> childLastFence = new HashMap<String, String>(); //
-    private MediaPlayer mp = null;
+    Map<String, String> childLastFence = new HashMap<String, String>(); // this will store the last fence that each child be in
+    Map<String, String> childIsInFence = new HashMap<String, String>(); // this will store the last fence that each child be in
+
     Vibrator v = null;
     final String TAG = "Guardian Service";
     @Nullable
@@ -88,18 +89,6 @@ public class Guardian_Service extends Service {
 
         // initialize danger sound
         v = (Vibrator) getApplicationContext().getSystemService(getApplicationContext().VIBRATOR_SERVICE);
-        // Vibrate for 500 milliseconds
-        /*
-        mp = new MediaPlayer();
-        mp.setDataSource(R.raw.danger_mp3);
-        mp.prepare();
-        mp.start();
-
-        mp = MediaPlayer.create(getApplicationContext(), R.raw.danger_mp3);
-        mp.setAudioStreamType(AudioManager.STREAM_MUSIC);
-        mp.start();
-        */
-//        mp.setVolume(50,50);ZZZZ
 
         mAuthListener = new FirebaseAuth.AuthStateListener() { // stop running if it finds that user is not logged in anymore
             @Override
@@ -124,7 +113,8 @@ public class Guardian_Service extends Service {
         userRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot guardian) {
-				// retrieves the fences and saves them in variables
+
+				// retrieves the fences that the guardian made and saves them in variables
                 if(guardian.child("Fences").exists()) {
                     fenceSnapshot = guardian.child("Fences");
                 }
@@ -139,8 +129,6 @@ public class Guardian_Service extends Service {
                 }
                 myManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000, 0, myLocationListener);
                 myManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 5000, 0, myLocationListener);
-				// retrieves the fences and saves them in variables
-			
 
 
 				// get the children and add a listener to them
@@ -171,79 +159,111 @@ public class Guardian_Service extends Service {
                             public void onDataChange(DataSnapshot childSnapshot) {
 								DataSnapshot parent = childSnapshot.child("Parent");
 								
-								// checks first if guardian is the parent of the child
+								// check first if guardian is the parent of the child
                                 if(parent.exists() && parent.getValue().toString().equals(currentUserID)) {
 
-									// check if child is in fences
-									// if in danger fenc, create a notification
 									Db_user childUser = childSnapshot.getValue(Db_user.class);
                                     Log.d(TAG,"A data in child "+childUser.getFirstName()+"changed!");
+
+                                    if(childUser.getSOS() == true){
+                                        v.vibrate(1000);
+                                        Intent intent = new Intent(getApplicationContext(), Guardian_ChildProfileOverviewActivity.class);
+                                        intent.putExtra("fromNotification", true);
+                                        PendingIntent pIntent = PendingIntent.getActivity(getApplicationContext(), (int) System.currentTimeMillis(), intent, 0);
+
+                                        Notification notification;
+                                        notification = new NotificationCompat.Builder(Guardian_Service.this)
+                                                .setSmallIcon(R.drawable.fence)
+                                                .setContentTitle(getResources().getString(R.string.app_name))
+                                                .setContentText(childUser.getFirstName() + " has sent an SOS! Please assist immediately!")
+                                                .setContentIntent(pIntent)
+                                                .setOngoing(false)
+                                                .setDefaults(Notification.DEFAULT_ALL)
+                                                .setPriority(Notification.PRIORITY_MAX)
+                                                .build();
+
+                                        mDatabase.child("users").child(childID).child("SOS").setValue(false);
+                                        //startForeground(1337, notification);
+                                        NotificationManager notifyMgr = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+                                        notifyMgr.notify(1340,notification);
+
+                                        Db_notification sosNotification = new Db_notification("Not read","SOS "+ childUser.getFirstName(), childUser.getFirstName() + " has sent an SOS! Please assist immediately!");
+                                        String timestamp = String.valueOf(System.currentTimeMillis());
+
+                                        // add notification item to guardian's database notifications
+                                        mDatabase.child("users").child(currentUserID).child("notifications").child(timestamp).setValue(sosNotification);
+                                    }
 
 									float[] distance = new float[2];
 									double childPosLatitude = childUser.getLastLatitude();
 									double childPosLongitude = childUser.getLastLongitude();
-									
-									// check if the child is in any fence
-									for(DataSnapshot snapshotFence : fenceSnapshot.getChildren() ) {
-										Db_fence fence = snapshotFence.getValue(Db_fence.class);
-										String fenceName = snapshotFence.getKey();
-										Location.distanceBetween( childPosLatitude, childPosLongitude,
-																  fence.getLatitude(), fence.getLongitude(), distance);
-                                        Log.d(TAG, "distance is " + distance[0]);
 
+                                    // check if the guardian created a fence
+                                    if(fenceSnapshot != null) {
+                                        int numFencesChecked = 0;
+                                        int numFences = (int) fenceSnapshot.getChildrenCount();
 
-                                        // checks if the child is in the circle
-										if( distance[0] < fence.getRadius()  ){
-                                            String message = "";
-                                            Log.d("service", "I am inside fence");
+                                        // check if the child is in any fence
+                                        for(DataSnapshot snapshotFence : fenceSnapshot.getChildren() ) {
+                                            Db_fence fence = snapshotFence.getValue(Db_fence.class);
+                                            String fenceName = snapshotFence.getKey();
+                                            Location.distanceBetween( childPosLatitude, childPosLongitude,
+                                                    fence.getLatitude(), fence.getLongitude(), distance);
 
-                                            // creates a variable to add to database
-                                            Db_notification dbNotification = new Db_notification();
-                                            dbNotification.setStatus("Not read");
-                                            dbNotification.setTitle(childUser.getFirstName() + " " + childUser.getLastName());
+                                            // checks if the child is in a circle
+                                            if( distance[0] < fence.getRadius()  ){
+                                                String message = "";
+                                                Log.d("service", "I am inside fence");
 
+                                                // creates a variable to add to database
+                                                Db_notification dbNotification = new Db_notification();
+                                                dbNotification.setStatus("Not read");
+                                                dbNotification.setTitle(childUser.getFirstName() + " " + childUser.getLastName());
 
-
-											if(fence.getSafety() == 1) {
-												// make noti that child is in circle
-                                                Log.d("service", "I am inside safety zone");
-                                                message = childUser.getFirstName() + " " + childUser.getLastName() + " has entered " + fenceName + " safety zone. ";
-											} else {
-                                                Log.d("service", "I am inside danger zone");
-                                                message = "DANGER!" + childUser.getFirstName() + " " + childUser.getLastName() + " has entered " + fenceName + " danger zone. ";
+                                                if(fence.getSafety() == 1) {
+                                                    // make noti that child is in circle
+                                                    Log.d("service", "I am inside safety zone");
+                                                    message = childUser.getFirstName() + " " + childUser.getLastName() + " has entered " + fenceName + " safety zone. ";
+                                                } else {
+                                                    Log.d("service", "I am inside danger zone");
+                                                    message = "DANGER!" + childUser.getFirstName() + " " + childUser.getLastName() + " has entered " + fenceName + " danger zone. ";
 //                                                final MediaPlayer mp = MediaPlayer.create(Guardian_Service.this, Settings.System.DEFAULT_ALARM_ALERT_URI);
+                                                }
 
+                                                String lastFence = childLastFence.get(childID);
 
-                                            }
+                                                // checks if value is already set
+                                                // this is to prevent the notification from being alerted everytime
+                                                // the child's data changes
+                                                // scenario : child just entered the danger zone and is walking around in it
+                                                if(lastFence != null && lastFence.equals(fenceName)) {
+                                                    Log.d(TAG, "User was already alerted");
+                                                    break;
+                                                } else {
+                                                    createNotificationForGeoFences(fence, message);
+                                                }
 
-                                            String lastFence = childLastFence.get(childID);
+                                                childLastFence.put(childID,fenceName);
 
-                                            // checks if value is already set
-                                            // this is to prevent the notification from being alerted everytime
-                                            // the child's data changes
-                                            if(lastFence != null && lastFence.equals(fenceName)) {
-                                                Log.d(TAG, "User was already alerted");
+                                                dbNotification.setContent(message);
+                                                String timestamp = String.valueOf(System.currentTimeMillis());
+
+                                                // add notification item to guardian's database notifications
+                                                mDatabase.child("users").child(currentUserID).child("notifications").child(timestamp).setValue(dbNotification);
                                                 break;
-                                            } else {
-                                                createNotificationForGeoFences(fence, message);
                                             }
 
+                                            numFencesChecked++;
+                                        }
+
+                                        // if you checked all the fences but the child is not in any of them
+                                        if(numFencesChecked >= numFences) {
+                                            Log.d(TAG, "Child is not in any fence");
+                                            childLastFence.put(childID, null) ;// set the last fence that the child was in to null
+                                        }
+                                    }
 
 
-                                            childLastFence.put(childID,fenceName);
-
-                                            dbNotification.setContent(message);
-                                            String timestamp = String.valueOf(System.currentTimeMillis());
-
-                                            // add notification item to guardian's database notifications
-                                            mDatabase.child("users").child(currentUserID).child("notifications").child(timestamp).setValue(dbNotification);
-
-
-
-                                            break;
-										}
-									}
-									
 									// check if there are any alarms that should be rung
                                     /*
 									for(DataSnapshot fence : fenceSnapshot.getChildren() ) {

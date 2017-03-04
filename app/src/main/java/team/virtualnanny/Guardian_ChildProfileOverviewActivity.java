@@ -85,6 +85,9 @@ public class Guardian_ChildProfileOverviewActivity extends FragmentActivity impl
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.guardian_child_profile_overview);
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
 
         existingFences = new ArrayList<Db_fence>();
         existingMarkers = new ArrayList<Marker>();
@@ -399,9 +402,6 @@ public class Guardian_ChildProfileOverviewActivity extends FragmentActivity impl
         mMap.setMapType(GoogleMap.MAP_TYPE_SATELLITE);
         CameraUpdate zoom=CameraUpdateFactory.zoomTo(20);
         mMap.animateCamera(zoom);
-        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            return;
-        }
         mMap.setMyLocationEnabled(true);
 
 

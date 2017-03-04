@@ -60,10 +60,14 @@ public class Child_ChildOverviewActivity extends FragmentActivity implements OnM
     private List<Db_fence> existingFences;
     private List<Marker> existingMarkers;
     private List<Circle> existingCircles;
+    private boolean runflag = true;
+
+
+    // UI components
     private TextView tv_name;
     private TextView tv_address;
     private TextView textview_steps;
-    private boolean runflag = true;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -209,6 +213,9 @@ public class Child_ChildOverviewActivity extends FragmentActivity implements OnM
             // left to right
             public void onSwipeRight() {
                 Intent i = new Intent(Child_ChildOverviewActivity.this, Child_MenuDrawerActivity.class);
+                i.putExtra("parentid",mParentID);
+                i.putExtra("parentnumber",mParentNumber);
+
                 startActivity(i);
                 overridePendingTransition(R.anim.left2right_enter, R.anim.left2right_exit);
             }

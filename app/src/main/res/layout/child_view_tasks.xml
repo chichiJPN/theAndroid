@@ -33,14 +33,12 @@
             <ImageView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                app:srcCompat="@drawable/pic1"
                 android:id="@+id/prof_pic"
                 android:layout_weight="4" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="John's tasks"
                 android:textSize="30sp"
                 android:id="@+id/pic_description"
                 android:layout_gravity="center"
@@ -59,43 +57,9 @@
             android:layout_gravity="center" />
         <LinearLayout
             android:layout_width="fill_parent"
-            android:layout_height="40sp"
-            android:orientation="horizontal"
-            android:id="@+id/task_container"
-            android:weightSum="13">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="DO HOME CHORES"
-                android:ems="10"
-                android:textSize="15sp"
-                android:gravity="center"
-                android:layout_gravity="center"
-                android:layout_weight="13" />
-        </LinearLayout>
-        <LinearLayout
-            android:layout_width="fill_parent"
-            android:layout_height="40sp"
-            android:orientation="horizontal"
-            android:weightSum="13">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="DO HOME CHORES"
-                android:ems="10"
-                android:textSize="15sp"
-                android:gravity="center"
-                android:layout_gravity="center"
-                android:layout_weight="13" />
-        </LinearLayout>
-        <LinearLayout
-            android:layout_width="fill_parent"
-            android:layout_height="40sp"
-            android:orientation="horizontal"
-            android:weightSum="13">
-
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:id="@+id/task_container" >
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

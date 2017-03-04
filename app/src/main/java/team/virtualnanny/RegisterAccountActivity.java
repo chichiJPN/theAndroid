@@ -73,17 +73,20 @@ public class RegisterAccountActivity extends AppCompatActivity {
                         double lastLatitude = 10.2972; // UC coordinates
                         double lastLongitude = 123.8950; // UC coordinates
                         int numSteps = 0;
-                        boolean enablePhone = false;
+                        boolean remoteLock = false;
+                        boolean remoteTracking = true;
+                        boolean SOS = false;
                         String currentDate = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
                         //2017-02-25
 
-                        Db_user dbuser = new Db_user(firstName,lastName,email,phone,gender,role,address, enablePhone, lastLatitude, lastLongitude, numSteps,0,currentDate); //adds a new user to the database
+                        //adds a new user to the database
+                        Db_user dbuser = new Db_user(firstName,lastName,email,phone,gender,role,address, remoteLock, lastLatitude, lastLongitude, numSteps,0,currentDate, remoteTracking,SOS);
                         mDatabase.child("users").child(user.getUid()).setValue(dbuser);
                         Db_limit dblimit = new Db_limit(false,24, false,false,false,false,false,false,false);
                         mDatabase.child("users").child(user.getUid()).child("limit").setValue(dblimit);
                     }
 
-                    FirebaseDatabase.getInstance().getReference().child("users").child(user.getUid())
+                    mDatabase.child("users").child(user.getUid())
                             .addListenerForSingleValueEvent(new ValueEventListener() {
                                 @Override
                                 public void onDataChange(DataSnapshot dataSnapshot) {

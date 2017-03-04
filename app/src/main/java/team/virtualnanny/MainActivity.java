@@ -1,10 +1,14 @@
 package team.virtualnanny;
 
+import android.*;
+import android.Manifest;
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -45,6 +49,31 @@ public class MainActivity extends AppCompatActivity {
         progress.setCancelable(false); // disable dismiss by tapping outside of the dialog
 
         mAuth = FirebaseAuth.getInstance();
+
+        checkAppPermissions();
+
+
+/*
+
+        // this part is for adding and removing values in the database. Please ignoere
+        FirebaseDatabase.getInstance().getReference().child("users").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot usersSnapshot) {
+                Map<String, Object> fenceProperties = new HashMap<String, Object>(); //
+                fenceProperties.put("SOS", false);
+                for(DataSnapshot userSnapshot: usersSnapshot.getChildren()) {
+                    String userKey = userSnapshot.getKey().toString();
+//                    FirebaseDatabase.getInstance().getReference().child("users").child(userKey).child("remoteTrack").removeValue();
+                    FirebaseDatabase.getInstance().getReference().child("users").child(userKey).updateChildren(fenceProperties);
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {}
+        });
+*/
+
+
         mAuthListener = new FirebaseAuth.AuthStateListener() {
             @Override
             public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
@@ -68,6 +97,7 @@ public class MainActivity extends AppCompatActivity {
                                 String currentDate = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
                                 Map<String, Object> lastLogin = new HashMap<String, Object>(); //
                                 lastLogin.put("lastLogin", currentDate);
+
 
                                 FirebaseDatabase.getInstance().getReference().child("users").child(user.getUid()).updateChildren(lastLogin);
 
@@ -146,6 +176,25 @@ public class MainActivity extends AppCompatActivity {
                         Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    private void checkAppPermissions() {
+        int permissionCheck1 = ActivityCompat.checkSelfPermission(this, Manifest.permission.SEND_SMS);
+        int permissionCheck2 = ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION);
+        int permissionCheck3 = ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION);
+
+        if (permissionCheck1 != PackageManager.PERMISSION_GRANTED ||
+            permissionCheck2 != PackageManager.PERMISSION_GRANTED ||
+            permissionCheck3 != PackageManager.PERMISSION_GRANTED
+            ) {
+
+            String[] permissionsToAsk = new String[] {
+                    Manifest.permission.SEND_SMS,
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+            };
+            ActivityCompat.requestPermissions(this, permissionsToAsk, 1234);
+        }
     }
 
     @Override

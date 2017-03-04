@@ -209,7 +209,7 @@ public class Guardian_SetFenceActivity extends AppCompatActivity implements OnMa
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
                             final String fenceName = input_fenceName.getText().toString().trim();
-                            final int safetyID = rg.getCheckedRadioButtonId();
+                            final int checkedButton = rg.getCheckedRadioButtonId();
                             final double radius = mapCircle.getRadius();
                             final double newMarkerLongitude = marker.getPosition().longitude;
                             final double newMarkerLatitude = marker.getPosition().latitude;
@@ -218,8 +218,8 @@ public class Guardian_SetFenceActivity extends AppCompatActivity implements OnMa
                             if(fenceName.isEmpty()) {
                                 Toast.makeText(Guardian_SetFenceActivity.this, "Please do not leave fence Name empty",Toast.LENGTH_SHORT).show();
                                 flag = false;
-                            }else if(safetyID == -1) {
-                                Toast.makeText(Guardian_SetFenceActivity.this, "Select fence safety",Toast.LENGTH_SHORT).show();
+                            }else if(checkedButton == -1) {
+                                Toast.makeText(Guardian_SetFenceActivity.this, "Please select fence safety",Toast.LENGTH_SHORT).show();
                                 flag = false;
                             } else {
                                 // latitude is y
@@ -271,6 +271,11 @@ public class Guardian_SetFenceActivity extends AppCompatActivity implements OnMa
                             users.child(currentUserID).addListenerForSingleValueEvent(new ValueEventListener() {
                                 @Override
                                 public void onDataChange(DataSnapshot dataSnapshot) {
+
+                                    View radioButton = rg.findViewById(checkedButton);
+                                    int safetyID = rg.indexOfChild(radioButton) + 1;
+
+
                                     Map<String, Object> fenceProperties = new HashMap<String, Object>(); //
                                     fenceProperties.put("radius", radius);
                                     fenceProperties.put("safety", safetyID);
