@@ -97,8 +97,6 @@ public class MainActivity extends AppCompatActivity {
                                 String currentDate = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
                                 Map<String, Object> lastLogin = new HashMap<String, Object>(); //
                                 lastLogin.put("lastLogin", currentDate);
-
-
                                 FirebaseDatabase.getInstance().getReference().child("users").child(user.getUid()).updateChildren(lastLogin);
 
                                 progress.dismiss();
@@ -110,7 +108,12 @@ public class MainActivity extends AppCompatActivity {
                             }
 
                             @Override
-                            public void onCancelled(DatabaseError databaseError) {}
+                            public void onCancelled(DatabaseError databaseError) {
+                                Log.d("MainActivity",databaseError.getMessage());
+                                Toast.makeText(getApplicationContext(), "An error occurred. Please try again",
+                                        Toast.LENGTH_SHORT).show();
+                                progress.dismiss();
+                            }
                         });
                 } else {
                     // User is signed out
@@ -135,7 +138,7 @@ public class MainActivity extends AppCompatActivity {
                 String password = input_password.getText().toString();
 
                 mAuth.signInWithEmailAndPassword(email , password)
-                        .addOnCompleteListener(MainActivity.this, new OnCompleteListener<AuthResult>() {
+                              .addOnCompleteListener(MainActivity.this, new OnCompleteListener<AuthResult>() {
                             @Override
                             public void onComplete(@NonNull Task<AuthResult> task) {
 

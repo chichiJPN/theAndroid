@@ -60,7 +60,7 @@ public class Child_MenuDrawerActivity extends AppCompatActivity {
                 parentNumber = null;
             } else {
                 parentID = extras.getString("parentid");
-                parentNumber = extras.getString("parentNumber");
+                parentNumber = extras.getString("parentnumber");
             }
         } else {
             parentID = (String) savedInstanceState.getSerializable("parentid");
@@ -127,7 +127,7 @@ public class Child_MenuDrawerActivity extends AppCompatActivity {
         list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
             @Override
-            public void onItemClick(AdapterView<?> parent, View view,
+            public void onItemClick(final AdapterView<?> parent, View view,
                                     int position, long id) {
                 // TODO Auto-generated method stub
 
@@ -135,6 +135,8 @@ public class Child_MenuDrawerActivity extends AppCompatActivity {
 
                 switch(Slecteditem) {
                     case "Notifications":
+                        Intent notiIntent = new Intent(Child_MenuDrawerActivity.this, NotificationActivity.class);
+                        startActivity(notiIntent);
                         break;
                     case "Send SOS":
                         // check first if child has a parent before sending SOS
@@ -151,8 +153,9 @@ public class Child_MenuDrawerActivity extends AppCompatActivity {
                             public void onClick(DialogInterface dialog, int which) {
 
 //                                FirebaseDatabase.getInstance().getReference().child("users").child(currentUserID).child("SOS").setValue(true);
-                                SmsManager smsManager = SmsManager.getDefault(); // uses the default sim in your phone
-                                smsManager.sendTextMessage("09228076111",null,"Help! I am in trouble!",null,null);
+                                Log.d("ChildMenu", parentNumber);
+//                                SmsManager smsManager = SmsManager.getDefault(); // uses the default sim in your phone
+ //                               smsManager.sendTextMessage(parentNumber,null,"Help! I am in trouble!",null,null);
 
                             }
                         });
@@ -189,6 +192,13 @@ public class Child_MenuDrawerActivity extends AppCompatActivity {
 
                                 final String parentID  = input_parentid.getText().toString().trim();
                                 final DatabaseReference users = FirebaseDatabase.getInstance().getReference().child("users");
+
+                                if(parentID.equals("")) {
+                                    Toast.makeText(Child_MenuDrawerActivity.this, "Please do not leave the field empty",Toast.LENGTH_SHORT).show();
+                                    return;
+                                }
+
+
                                 progress.show();
                                 //check if parent ID exists
                                 users.child(parentID).addListenerForSingleValueEvent(new ValueEventListener() {
@@ -233,16 +243,26 @@ public class Child_MenuDrawerActivity extends AppCompatActivity {
 
                     case "My ID":
                         AlertDialog.Builder builderID = new AlertDialog.Builder(Child_MenuDrawerActivity.this);
-                        LinearLayout layoutID = new LinearLayout(Child_MenuDrawerActivity.this);
-                        layoutID.setOrientation(LinearLayout.VERTICAL);
-                        final TextView myID = new TextView(Child_MenuDrawerActivity.this);
+                        builderID.setTitle("My ID");
+                        builderID.setMessage(currentUserID);
 
-                        myID.setText(FirebaseAuth.getInstance().getCurrentUser().getUid());
-                        myID.setGravity(Gravity.CENTER | Gravity.BOTTOM);
-                        myID.setPadding(0,50,0,30);
-                        layoutID.addView(myID);
+                        builderID.setPositiveButton("Send as a message", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                Intent smsIntent = new Intent(Intent.ACTION_VIEW);
+                                smsIntent.setType("vnd.android-dir/mms-sms");
+                                smsIntent.putExtra("address", "");
+                                smsIntent.putExtra("sms_body", currentUserID);
+                                startActivity(smsIntent);
+                            }
+                        });
 
-                        builderID.setView(layoutID);
+                        builderID.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.cancel();
+                            }
+                        });
 
                         builderID.show();
                         break;
@@ -258,7 +278,6 @@ public class Child_MenuDrawerActivity extends AppCompatActivity {
                         startActivity(i);
                         break;
                 }
-                Toast.makeText(getApplicationContext(), Slecteditem, Toast.LENGTH_SHORT).show();
             }
         });
         

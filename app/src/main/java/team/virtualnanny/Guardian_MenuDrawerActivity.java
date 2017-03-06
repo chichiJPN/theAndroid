@@ -46,6 +46,7 @@ public class Guardian_MenuDrawerActivity extends AppCompatActivity {
     private DatabaseReference mDatabase;
     private ProgressDialog progress;
     private String m_Text = "";
+    private String currentUserID;
 	
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -74,6 +75,8 @@ public class Guardian_MenuDrawerActivity extends AppCompatActivity {
                 }
             }
         };
+
+        currentUserID = mAuth.getCurrentUser().getUid();
 
         LinearLayout profileBar = (LinearLayout) findViewById(R.id.profileBar) ;
 
@@ -123,6 +126,8 @@ public class Guardian_MenuDrawerActivity extends AppCompatActivity {
                 * */
                 switch(Slecteditem) {
                     case "Notifications":
+                        Intent notiIntent = new Intent(Guardian_MenuDrawerActivity.this, NotificationActivity.class);
+                        startActivity(notiIntent);
                         break;
                     case "Add Child Account":
 
@@ -149,6 +154,12 @@ public class Guardian_MenuDrawerActivity extends AppCompatActivity {
 
                             final String childID  = input_childid.getText().toString().trim();
                             final DatabaseReference users = FirebaseDatabase.getInstance().getReference().child("users");
+
+                            if(childID.equals("")) {
+                                Toast.makeText(Guardian_MenuDrawerActivity.this, "Please do not leave the field empty",Toast.LENGTH_SHORT).show();
+                                return;
+                            }
+
                             progress.show();
 
                             users.child(childID).addListenerForSingleValueEvent(new ValueEventListener() {
@@ -201,17 +212,26 @@ public class Guardian_MenuDrawerActivity extends AppCompatActivity {
                         break;
                     case "My parent ID":
                         AlertDialog.Builder builderID = new AlertDialog.Builder(Guardian_MenuDrawerActivity.this);
+                        builderID.setTitle("My ID");
+                        builderID.setMessage(currentUserID);
 
-                        LinearLayout layoutID = new LinearLayout(Guardian_MenuDrawerActivity.this);
-                        layoutID.setOrientation(LinearLayout.VERTICAL);
-                        final TextView myID = new TextView(Guardian_MenuDrawerActivity.this);
+                        builderID.setPositiveButton("Send as a message", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                Intent smsIntent = new Intent(Intent.ACTION_VIEW);
+                                smsIntent.setType("vnd.android-dir/mms-sms");
+                                smsIntent.putExtra("address", "");
+                                smsIntent.putExtra("sms_body", currentUserID);
+                                startActivity(smsIntent);
+                            }
+                        });
 
-                        myID.setText(FirebaseAuth.getInstance().getCurrentUser().getUid());
-                        myID.setGravity(Gravity.CENTER | Gravity.BOTTOM);
-                        myID.setPadding(0,50,0,30);
-                        layoutID.addView(myID);
-
-                        builderID.setView(layoutID);
+                        builderID.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.cancel();
+                            }
+                        });
 
                         builderID.show();
 

@@ -73,28 +73,19 @@ public class Db_user {
     public double getLastLatitude() {return lastLatitude; }
     public double getLastLongitude() {return lastLongitude; }
     public int getNumSteps() {return numSteps; }
-
-
     public int getNumStepsToday() {
         return numStepsToday;
     }
-
     public String getLastLogin() {
         return lastLogin;
     }
-
-    public boolean getRemoteLock() {
-        return getRemoteLock();
-    }
-
+    public boolean getRemoteLock() {return remoteLock; }
     public String getEmail() {
         return email;
     }
-
     public boolean getRemoteTracking() {
         return remoteTracking;
     }
-
     public boolean getSOS() {
         return SOS;
     }

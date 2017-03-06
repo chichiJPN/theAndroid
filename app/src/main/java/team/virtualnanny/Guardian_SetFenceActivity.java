@@ -10,6 +10,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.telephony.SmsManager;
 import android.text.InputType;
 import android.util.Log;
 import android.view.Gravity;
@@ -63,7 +64,9 @@ public class Guardian_SetFenceActivity extends AppCompatActivity implements OnMa
     private List<Db_fence> existingFences;
     private List<Marker> existingMarkers;
     private List<Circle> existingCircles;
+    private String currentUserID;
 
+    private Marker lastMarkerClicked = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -91,11 +94,13 @@ public class Guardian_SetFenceActivity extends AppCompatActivity implements OnMa
                 }
             }
         };
+        currentUserID = mAuth.getCurrentUser().getUid();
 
         setContentView(R.layout.guardian_set_fence);
         setTitle("Set Geo fence");
         getSupportActionBar().setDisplayHomeAsUpEnabled(true); // enables back button on the action bar
         getSupportActionBar().setBackgroundDrawable(new ColorDrawable(0xFF000000)); // sets the actions bar as black
+
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
@@ -139,6 +144,7 @@ public class Guardian_SetFenceActivity extends AppCompatActivity implements OnMa
                                 .title(newLatLng.toString());
 
                         final Marker marker = mMap.addMarker(markerOptions);
+
                         AlertDialog.Builder builder = new AlertDialog.Builder(Guardian_SetFenceActivity.this);
                         builder.setTitle("Add Fence");
 
@@ -266,7 +272,6 @@ public class Guardian_SetFenceActivity extends AppCompatActivity implements OnMa
 
                             progress.show();
                             final DatabaseReference users = mDatabase.child("users");
-                            final String currentUserID = mAuth.getCurrentUser().getUid();
 
                             users.child(currentUserID).addListenerForSingleValueEvent(new ValueEventListener() {
                                 @Override
@@ -320,12 +325,84 @@ public class Guardian_SetFenceActivity extends AppCompatActivity implements OnMa
                 });
                 break;
             case R.id.action_delete:
-                Toast.makeText(getApplicationContext(), "Delete Button Clicked!",
-                        Toast.LENGTH_SHORT).show();
+                // check if there was a marker clicked
+                if(!lastMarkerClicked.equals(null)) {
+
+                    for(int x = 0; x < existingMarkers.size();x++) {
+                        if(lastMarkerClicked.equals(existingMarkers.get(x))) {
+                            AlertDialog.Builder builder = new AlertDialog.Builder(Guardian_SetFenceActivity.this);
+                            builder.setTitle("Are you sure you want to delete Geofence '"+lastMarkerClicked.getTitle()+"'");
+
+                            // Set up the buttons
+                            final int finalX = x;
+                            builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+
+                                    String fenceName = existingMarkers.get(finalX).getTitle();
+
+                                    existingMarkers.get(finalX).remove();
+                                    existingCircles.get(finalX).remove();
+
+                                    existingMarkers.remove(finalX);
+                                    existingFences.remove(finalX);
+                                    existingCircles.remove(finalX);
+                                    mDatabase.child("users").child(currentUserID).child("Fences").child(fenceName).removeValue();
+                                }
+                            });
+                            builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    dialog.cancel();
+                                }
+                            });
+
+                            builder.show();
+
+                            break;
+                        }
+                    }
+
+
+
+                } else {
+                    Toast.makeText(getApplicationContext(), "Please click on a marker and click on the delete button",
+                            Toast.LENGTH_SHORT).show();
+                }
+
                 break;
             case R.id.action_search:
-                Toast.makeText(getApplicationContext(), "Search Button Clicked!",
-                    Toast.LENGTH_SHORT).show();
+                AlertDialog.Builder builder = new AlertDialog.Builder(Guardian_SetFenceActivity.this);
+                builder.setTitle("Please input the name of the geolocation:");
+
+                final EditText input = new EditText(Guardian_SetFenceActivity.this);
+
+                builder.setView(input);
+
+                builder.setPositiveButton("Search", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        String fenceName = input.getText().toString();
+                        Log.d("Fence", fenceName);
+                        for(Marker marker: existingMarkers) {
+                            if(marker.getTitle().equals(fenceName)) {
+                                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(marker.getPosition(), 12.0f));
+                                return;
+                            }
+                        }
+                        Toast.makeText(getApplicationContext(), fenceName + " does not exist",
+                                Toast.LENGTH_LONG).show();
+
+                    }
+                });
+                builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.cancel();
+                    }
+                });
+
+                builder.show();
 
                 break;
         }
@@ -345,8 +422,15 @@ public class Guardian_SetFenceActivity extends AppCompatActivity implements OnMa
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-        mMap.setMapType(GoogleMap.MAP_TYPE_SATELLITE);
-        // Add a marker in Sydney and move the camera
+        mMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
+
+        mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+            @Override
+            public boolean onMarkerClick(Marker marker) {
+                lastMarkerClicked = marker;
+                return false;
+            }
+        });
 
 
         LatLng upCebu = new LatLng(10.3226, 123.8986);

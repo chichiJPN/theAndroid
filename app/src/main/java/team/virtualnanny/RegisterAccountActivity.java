@@ -98,6 +98,11 @@ public class RegisterAccountActivity extends AppCompatActivity {
                                         intent = new Intent(getApplicationContext(), Child_ChildOverviewActivity.class);
                                     }
 
+                                    String currentDate = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
+                                    Map<String, Object> lastLogin = new HashMap<String, Object>(); //
+                                    lastLogin.put("lastLogin", currentDate);
+                                    FirebaseDatabase.getInstance().getReference().child("users").child(user.getUid()).updateChildren(lastLogin);
+
                                     progress.dismiss();
 
                                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);

@@ -45,10 +45,14 @@ public class Guardian_DashboardActivity extends AppCompatActivity {
     private FirebaseAuth.AuthStateListener mAuthListener;
     private DatabaseReference mDatabase;
     private String childID;
+
+
+    // UI components
     private LinearLayout remind_container;
     private LinearLayout tasks_container;
     private LinearLayout steps_taken_container;
     private TextView profpic_description;
+    private ImageView profpic;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -88,6 +92,7 @@ public class Guardian_DashboardActivity extends AppCompatActivity {
 				}
             }
         };
+
         ImageView btn_add_assignment = (ImageView) findViewById(R.id.btn_add_assignment);
 
         btn_add_assignment.setOnClickListener(new View.OnClickListener() {
@@ -100,7 +105,7 @@ public class Guardian_DashboardActivity extends AppCompatActivity {
         });
 				
 
-        ImageView profpic = (ImageView) findViewById(R.id.profpic);
+        profpic = (ImageView) findViewById(R.id.profpic);
         profpic_description = (TextView) findViewById(R.id.profpic_description);
         ProgressBar progressbar_consequence = (ProgressBar) findViewById(R.id.progressbar_consequence);
         ProgressBar progressbar_reward = (ProgressBar) findViewById(R.id.progressbar_reward);
@@ -110,66 +115,28 @@ public class Guardian_DashboardActivity extends AppCompatActivity {
 
         profpic.setBackgroundResource(R.drawable.profile_child1);
     }
-    private void setSteps(DataSnapshot child) {
-        if (!child.child("assignments").child("Steps").exists()) {
-            return;
-        }
 
-        DataSnapshot assignments = child.child("assignments");
-
-        final Db_assignment steps = assignments.child("Steps").getValue(Db_assignment.class);
-        final int numStepsToday = (Integer.parseInt(child.child("numStepsToday").getValue().toString())) + 1 ;
-
-        LinearLayout Row = new LinearLayout(Guardian_DashboardActivity.this);
-        Row.setBackgroundResource(R.drawable.performance_reminder_border);
-        Row.setPadding(20, 20, 20, 20);
-        Row.setOrientation(LinearLayout.HORIZONTAL);
-        Row.setWeightSum(15);
-        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.FILL_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-        params.height = 100;
-        Row.setLayoutParams(params);
-        Row.setOnClickListener(new View.OnClickListener() {
+    public void refreshList() {
+        progress.show();
+        mDatabase.child("users").child(childID).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
-            public void onClick(View v) {
-                Log.d("Num Steps", " is " + steps.getNumCompletionForReward());
-                popUpDelete("Steps",numStepsToday + " Steps",steps.getReward(),steps.getConsequence());
+            public void onDataChange(DataSnapshot child) {
+                profpic_description.setText(child.child("firstName").getValue().toString() + "'s performance");
+
+                remind_container.removeAllViews();
+                tasks_container.removeAllViews();
+                steps_taken_container.removeAllViews();
+
+                DataSnapshot assignments = child.child("assignments");
+
+                setReminders(assignments);
+                setTasks(assignments);
+                setSteps(child);
+                progress.dismiss();
             }
+            @Override
+            public void onCancelled(DatabaseError databaseError) {}
         });
-
-        // creates the task name part
-        TextView tvSteps = new TextView(Guardian_DashboardActivity.this);
-        tvSteps.setText("" + steps.getNumCompletionForReward() + " steps per day");
-        tvSteps.setTextColor(Color.BLACK);
-        tvSteps.setGravity(Gravity.CENTER);
-        tvSteps.setEms(10);
-        tvSteps.setLayoutParams(new LinearLayout.LayoutParams(
-                0,
-                LinearLayout.LayoutParams.WRAP_CONTENT, 7.0f));
-
-        int completionsForReward = steps.getNumCompletionForReward();
-
-        ProgressBar progressbar = new ProgressBar(Guardian_DashboardActivity.this,null, android.R.attr.progressBarStyleHorizontal);
-        progressbar.setLayoutParams(new LinearLayout.LayoutParams(
-                0,
-                LinearLayout.LayoutParams.WRAP_CONTENT, 5.0f));
-        progressbar.setMax((int)completionsForReward);
-
-        progressbar.setProgress(numStepsToday);
-
-        TextView tvPercentage = new TextView(Guardian_DashboardActivity.this);
-        tvPercentage.setText("" + (numStepsToday/completionsForReward * 100.0) + "%");
-        tvPercentage.setTextColor(Color.BLACK);
-        tvPercentage.setGravity(Gravity.RIGHT);
-        tvPercentage.setEms(10);
-        tvPercentage.setLayoutParams(new LinearLayout.LayoutParams(
-                0,
-                LinearLayout.LayoutParams.WRAP_CONTENT, 3.0f));
-
-        Row.addView(tvSteps);
-        Row.addView(progressbar);
-        Row.addView(tvPercentage);
-
-        steps_taken_container.addView(Row);
     }
 
     public void setReminders(DataSnapshot assignments) {
@@ -301,6 +268,68 @@ public class Guardian_DashboardActivity extends AppCompatActivity {
         }
     }
 
+    private void setSteps(DataSnapshot child) {
+        if (!child.child("assignments").child("Steps").exists()) {
+            return;
+        }
+
+        DataSnapshot assignments = child.child("assignments");
+
+        final Db_assignment steps = assignments.child("Steps").getValue(Db_assignment.class);
+        final int numStepsToday = (Integer.parseInt(child.child("numStepsToday").getValue().toString())) + 1 ;
+
+        LinearLayout Row = new LinearLayout(Guardian_DashboardActivity.this);
+        Row.setBackgroundResource(R.drawable.performance_reminder_border);
+        Row.setPadding(20, 20, 20, 20);
+        Row.setOrientation(LinearLayout.HORIZONTAL);
+        Row.setWeightSum(15);
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.FILL_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        params.height = 100;
+        Row.setLayoutParams(params);
+        Row.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.d("Num Steps", " is " + steps.getNumCompletionForReward());
+                popUpDelete("Steps",numStepsToday + " Steps",steps.getReward(),steps.getConsequence());
+            }
+        });
+
+        // creates the task name part
+        TextView tvSteps = new TextView(Guardian_DashboardActivity.this);
+        tvSteps.setText("" + steps.getNumCompletionForReward() + " steps per day");
+        tvSteps.setTextColor(Color.BLACK);
+        tvSteps.setGravity(Gravity.CENTER);
+        tvSteps.setEms(10);
+        tvSteps.setLayoutParams(new LinearLayout.LayoutParams(
+                0,
+                LinearLayout.LayoutParams.WRAP_CONTENT, 7.0f));
+
+        int completionsForReward = steps.getNumCompletionForReward();
+
+        ProgressBar progressbar = new ProgressBar(Guardian_DashboardActivity.this,null, android.R.attr.progressBarStyleHorizontal);
+        progressbar.setLayoutParams(new LinearLayout.LayoutParams(
+                0,
+                LinearLayout.LayoutParams.WRAP_CONTENT, 5.0f));
+        progressbar.setMax((int)completionsForReward);
+
+        progressbar.setProgress(numStepsToday);
+
+        TextView tvPercentage = new TextView(Guardian_DashboardActivity.this);
+        tvPercentage.setText("" + (numStepsToday/completionsForReward * 100.0) + "%");
+        tvPercentage.setTextColor(Color.BLACK);
+        tvPercentage.setGravity(Gravity.RIGHT);
+        tvPercentage.setEms(10);
+        tvPercentage.setLayoutParams(new LinearLayout.LayoutParams(
+                0,
+                LinearLayout.LayoutParams.WRAP_CONTENT, 3.0f));
+
+        Row.addView(tvSteps);
+        Row.addView(progressbar);
+        Row.addView(tvPercentage);
+
+        steps_taken_container.addView(Row);
+    }
+
     public void popUpDelete(final String assignmentType, final String name, String reward, String Consequence) {
         Log.d(assignmentType, name);
         AlertDialog.Builder builder = new AlertDialog.Builder(Guardian_DashboardActivity.this);
@@ -352,29 +381,6 @@ public class Guardian_DashboardActivity extends AppCompatActivity {
         builder.show();
     }
 
-    public void refreshList() {
-        progress.show();
-        mDatabase.child("users").child(childID).addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot child) {
-                profpic_description.setText(child.child("firstName").getValue().toString() + "'s performance");
-
-                remind_container.removeAllViews();
-                tasks_container.removeAllViews();
-                steps_taken_container.removeAllViews();
-
-                DataSnapshot assignments = child.child("assignments");
-
-                setReminders(assignments);
-                setTasks(assignments);
-                setSteps(child);
-                progress.dismiss();
-            }
-            @Override
-            public void onCancelled(DatabaseError databaseError) {}
-        });
-    }
-
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == android.R.id.home) {
@@ -388,7 +394,6 @@ public class Guardian_DashboardActivity extends AppCompatActivity {
         super.onStart();
         mAuth.addAuthStateListener(mAuthListener);
         refreshList();
-
         Log.d("Onstart", "onstart");
     }
 

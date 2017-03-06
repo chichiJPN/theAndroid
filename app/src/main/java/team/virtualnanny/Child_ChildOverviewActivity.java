@@ -98,6 +98,7 @@ public class Child_ChildOverviewActivity extends FragmentActivity implements OnM
                 }
             }
         };
+
         requestPermissionAccessLocation();
         Intent intent = new Intent(getApplicationContext(), Child_Service.class);
         startService(intent);
@@ -113,14 +114,6 @@ public class Child_ChildOverviewActivity extends FragmentActivity implements OnM
         ImageButton btn_dashboard = (ImageButton) findViewById(R.id.btn_dashboard);
         ImageButton btn_task = (ImageButton) findViewById(R.id.btn_task);
         RelativeLayout layout = (RelativeLayout) findViewById(R.id.RelativeLayout1);
-
-/*
-        requestPermissionAccessLocation();
-        myLocationListener = new MyLocationListener();
-        myManager = (LocationManager) getSystemService(LOCATION_SERVICE);
-        myManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, myLocationListener);
-        myManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, myLocationListener);
-*/
 
         btn_phone.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -165,6 +158,7 @@ public class Child_ChildOverviewActivity extends FragmentActivity implements OnM
             startActivity(i);
             }
         });
+
         btn_alarm.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -177,6 +171,7 @@ public class Child_ChildOverviewActivity extends FragmentActivity implements OnM
             startActivity(i);
             }
         });
+
         btn_task.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -189,6 +184,7 @@ public class Child_ChildOverviewActivity extends FragmentActivity implements OnM
             startActivity(i);
             }
         });
+
         btn_dashboard.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -202,15 +198,11 @@ public class Child_ChildOverviewActivity extends FragmentActivity implements OnM
             }
         });
 
-        // Obtain the SupportMapFragment and get notified when the map is ready to be used.
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
-                .findFragmentById(R.id.map);
-        mapFragment.getMapAsync(this);
-
+        // add touchscreen swipe capabilities
         layout.setOnTouchListener(new OnSwipeTouchListener(Child_ChildOverviewActivity.this) {
             public void onSwipeTop() {}
 
-            // left to right
+            // user swipes from left to right
             public void onSwipeRight() {
                 Intent i = new Intent(Child_ChildOverviewActivity.this, Child_MenuDrawerActivity.class);
                 i.putExtra("parentid",mParentID);
@@ -223,6 +215,12 @@ public class Child_ChildOverviewActivity extends FragmentActivity implements OnM
             public void onSwipeLeft() {}
             public void onSwipeBottom() {}
         });
+
+        // Obtain the SupportMapFragment and get notified when the map is ready to be used.
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+                .findFragmentById(R.id.map);
+        mapFragment.getMapAsync(this);
+
     }
 
     private void setPageData() {
@@ -330,7 +328,7 @@ public class Child_ChildOverviewActivity extends FragmentActivity implements OnM
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-        mMap.setMapType(GoogleMap.MAP_TYPE_SATELLITE);
+        mMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
         mMap.setMyLocationEnabled(true);
         setPageData();
         CameraUpdate zoom=CameraUpdateFactory.zoomTo(20);

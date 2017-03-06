@@ -17,7 +17,7 @@
 
     <application
         android:allowBackup="true"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@mipmap/the_face_of_vn"
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
@@ -118,6 +118,9 @@
 
         <activity
             android:name=".Child_ChildOverviewActivity"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".NotificationActivity"
             android:screenOrientation="portrait" />
 
         <!--

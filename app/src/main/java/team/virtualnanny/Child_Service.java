@@ -58,8 +58,11 @@ public class Child_Service extends Service {
     private int numStepsToday = 0;
     boolean busyFlag = false;
     int LOCATION_UPDATE_INTERVAL = 5 * 1000;  // 5 is the number of seconds
-    int LOCATION_HISTORY_UPDATE_INTERVAL = 60 * 1000; // 600 is the number of seconds = 10 minutes
+    int LOCATION_HISTORY_UPDATE_INTERVAL = 60 * 1000; // 60 is the number of seconds = 1 minutes
     int historyCounter = 0;
+    boolean remoteTracking = true;
+    boolean remoteLock = false;
+
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
@@ -91,22 +94,56 @@ public class Child_Service extends Service {
         userRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                numSteps = Integer.parseInt(dataSnapshot.child("numSteps").getValue().toString());
-                numStepsToday = Integer.parseInt(dataSnapshot.child("numStepsToday").getValue().toString());
+                Db_user currentUser = dataSnapshot.getValue(Db_user.class);
+
+                numSteps = currentUser.getNumSteps();
+                numStepsToday = currentUser.getNumStepsToday();
+                remoteLock = currentUser.getRemoteLock();
+                remoteTracking = currentUser.getRemoteTracking();
+
                 createNotificationForStartForeground();
                 myLocationListener = new MyLocationListener();
                 myManager = (LocationManager) getSystemService(LOCATION_SERVICE);
                 if(!checkLocationPermission()){
                     return;
                 }
-                myManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, myLocationListener);
-                myManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, myLocationListener);
+                myManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, LOCATION_UPDATE_INTERVAL, 0, myLocationListener);
+                myManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, LOCATION_UPDATE_INTERVAL, 0, myLocationListener);
                 Log.d("child service","the service has started");
             }
 
             @Override
             public void onCancelled(DatabaseError databaseError) {}
         });
+
+        // add a listener to child's "remoteLock"
+        userRef.child("remoteLock").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot childLockSnapshot) {
+                boolean childLock = Boolean.parseBoolean(childLockSnapshot.getValue().toString());
+
+                Toast.makeText(getApplicationContext(), "Child lock is now " + childLock , Toast.LENGTH_SHORT).show();
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {}
+        });
+
+        // add a listener to child's "remoteTracking"
+        userRef.child("remoteTracking").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot childTrackingSnapshot) {
+                boolean remoteTracking = Boolean.parseBoolean(childTrackingSnapshot.getValue().toString());
+
+                Toast.makeText(getApplicationContext(), "Remote Tracking is now " + remoteTracking, Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {}
+        });
+
+
     }
 
 
@@ -158,7 +195,7 @@ public class Child_Service extends Service {
             this.lastLocation = location;
         }
 
-        if(distance < 8) { // if distance walked is less than 25 meters
+        if(distance < 8) { // if distance walked is less than 8 meters
             numSteps += ((int)(distance / StepSize));
             numStepsToday += ((int)(distance / StepSize));
         }
@@ -175,8 +212,10 @@ public class Child_Service extends Service {
 
         if(historyCounter > LOCATION_HISTORY_UPDATE_INTERVAL) {
             Map<String, Object> locationHistory = new HashMap<String, Object>(); //
-            locationHistory.put("Latitude", lastLatitude);
-            locationHistory.put("Longitude", lastLongitude);
+            if(remoteTracking == true ) {
+                locationHistory.put("Latitude", lastLatitude);
+                locationHistory.put("Longitude", lastLongitude);
+            }
             String timestamp = String.valueOf(System.currentTimeMillis());
 
             userRef.child("locationHistory").child(timestamp).updateChildren(locationHistory);

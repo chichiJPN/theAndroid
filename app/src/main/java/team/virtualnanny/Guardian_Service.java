@@ -71,7 +71,6 @@ public class Guardian_Service extends Service {
     boolean busyFlag = false;
 
     Map<String, String> childLastFence = new HashMap<String, String>(); // this will store the last fence that each child be in
-    Map<String, String> childIsInFence = new HashMap<String, String>(); // this will store the last fence that each child be in
 
     Vibrator v = null;
     final String TAG = "Guardian Service";
@@ -165,6 +164,8 @@ public class Guardian_Service extends Service {
 									Db_user childUser = childSnapshot.getValue(Db_user.class);
                                     Log.d(TAG,"A data in child "+childUser.getFirstName()+"changed!");
 
+
+                                    // checks if child sent an SOS
                                     if(childUser.getSOS() == true){
                                         v.vibrate(1000);
                                         Intent intent = new Intent(getApplicationContext(), Guardian_ChildProfileOverviewActivity.class);
@@ -218,7 +219,7 @@ public class Guardian_Service extends Service {
                                                 // creates a variable to add to database
                                                 Db_notification dbNotification = new Db_notification();
                                                 dbNotification.setStatus("Not read");
-                                                dbNotification.setTitle(childUser.getFirstName() + " " + childUser.getLastName());
+                                                dbNotification.setTitle(childUser.getFirstName() + " " + childUser.getLastName() + " has entered a zone");
 
                                                 if(fence.getSafety() == 1) {
                                                     // make noti that child is in circle
