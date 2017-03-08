@@ -5,6 +5,7 @@ public class Db_fence {
     private int safety;
     private double longitude;
     private double latitude;
+    private String type;
 
     public Db_fence() {}
 
@@ -12,11 +13,13 @@ public class Db_fence {
                     double radius,
                     int safety,
                     double longitude,
-                    double latitude) {
+                    double latitude,
+                    String type) {
         this.radius = radius;
         this.safety = safety;
         this.longitude = longitude;
         this.latitude = latitude;
+        this.type = type;
     }
     public double getRadius() {
         return radius;
@@ -29,5 +32,9 @@ public class Db_fence {
     }
     public double getLatitude() {
         return latitude;
+    }
+
+    public String getType() {
+        return type;
     }
 }

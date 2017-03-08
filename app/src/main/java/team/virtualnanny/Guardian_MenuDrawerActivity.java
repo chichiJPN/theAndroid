@@ -140,7 +140,7 @@ public class Guardian_MenuDrawerActivity extends AppCompatActivity {
                         final EditText input_childid = new EditText(Guardian_MenuDrawerActivity.this);
 
                         input_childid.setInputType(InputType.TYPE_CLASS_TEXT);
-                        input_childid.setHint("Child ID");
+                        input_childid.setHint("Child Email");
                         input_childid.setGravity(Gravity.CENTER | Gravity.BOTTOM);
                         layout.addView(input_childid);
 
@@ -152,51 +152,61 @@ public class Guardian_MenuDrawerActivity extends AppCompatActivity {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
 
-                            final String childID  = input_childid.getText().toString().trim();
-                            final DatabaseReference users = FirebaseDatabase.getInstance().getReference().child("users");
+                                final String childEmail  = input_childid.getText().toString().trim();
+                                final DatabaseReference users = FirebaseDatabase.getInstance().getReference().child("users");
 
-                            if(childID.equals("")) {
-                                Toast.makeText(Guardian_MenuDrawerActivity.this, "Please do not leave the field empty",Toast.LENGTH_SHORT).show();
-                                return;
-                            }
+                                if(childEmail.equals("")) {
+                                    Toast.makeText(Guardian_MenuDrawerActivity.this, "Please do not leave the field empty",Toast.LENGTH_SHORT).show();
+                                    return;
+                                }
 
-                            progress.show();
+                                progress.show();
+                                mDatabase.child("users").orderByChild("email").equalTo(childEmail).addListenerForSingleValueEvent(new ValueEventListener() {
+                                    @Override
+                                    public void onDataChange(DataSnapshot childSnapshot) {
+                                        if(childSnapshot.exists()) {
+                                            Db_user user = childSnapshot.getValue(Db_user.class);
+                                            // check if user is a child
+                                            if(user.getRole().equals("Child")) {
 
-                            users.child(childID).addListenerForSingleValueEvent(new ValueEventListener() {
-                                        @Override
-                                        public void onDataChange(DataSnapshot dataSnapshot) {
-                                            if(dataSnapshot.exists()) {
-                                                if(dataSnapshot.child("role").getValue().equals("Child")) {
-                                                    final String currentUserID = mAuth.getCurrentUser().getUid();
-                                                    users.child(currentUserID).child("children").addListenerForSingleValueEvent(new ValueEventListener() {
-                                                        @Override
-                                                        public void onDataChange(DataSnapshot children) {
-                                                            if(children.getChildrenCount() < 3) { // if children are lesser than 3
-                                                                String childKey = users.child(currentUserID).child("children").push().getKey(); // create a key
-                                                                Map<String, Object> childUpdate = new HashMap<String, Object>(); //
-                                                                childUpdate.put(childKey, childID);
-                                                                users.child(currentUserID).child("children").updateChildren(childUpdate);
-                                                                Toast.makeText(Guardian_MenuDrawerActivity.this, "Child has been added.",Toast.LENGTH_SHORT).show();
-                                                            } else {
-                                                                Toast.makeText(Guardian_MenuDrawerActivity.this, "Already have 3 children.",Toast.LENGTH_SHORT).show();
-                                                            }
+                                                users.child(currentUserID).child("children").addListenerForSingleValueEvent(new ValueEventListener() {
+                                                    @Override
+                                                    public void onDataChange(DataSnapshot children) {
+                                                        // check if guardian has lesser than 3 children
+                                                        if(children.getChildrenCount() < 3) { // if children are lesser than 3
+
+                                                            String childKey = users.child(currentUserID).child("children").push().getKey(); // create a key
+                                                            Map<String, Object> childUpdate = new HashMap<String, Object>(); //
+                                                            childUpdate.put(childKey, childEmail);
+
+                                                            users.child(currentUserID).child("children").updateChildren(childUpdate);
+                                                            Toast.makeText(Guardian_MenuDrawerActivity.this, "Child has been added.",Toast.LENGTH_SHORT).show();
+
+                                                        } else {
+                                                            Toast.makeText(Guardian_MenuDrawerActivity.this, "Already have 3 children.",Toast.LENGTH_SHORT).show();
                                                         }
+                                                    }
 
-                                                        @Override
-                                                        public void onCancelled(DatabaseError databaseError) {}
-                                                    });
-                                                } else {
-                                                    Toast.makeText(Guardian_MenuDrawerActivity.this, "Person is not a child.",Toast.LENGTH_SHORT).show();
-                                                }
+                                                    @Override
+                                                    public void onCancelled(DatabaseError databaseError) {}
+                                                });
                                             } else {
-                                                Toast.makeText(Guardian_MenuDrawerActivity.this, "Child does not exist.",Toast.LENGTH_SHORT).show();
+                                                Toast.makeText(Guardian_MenuDrawerActivity.this, "Person is not child.",Toast.LENGTH_SHORT).show();
                                             }
-                                         }
+                                        } else {
+                                            Toast.makeText(Guardian_MenuDrawerActivity.this, "Child does not exist.",Toast.LENGTH_SHORT).show();
+                                        }
 
-                                        @Override
-                                        public void onCancelled(DatabaseError databaseError) {}
-                                    });
-                                progress.dismiss();
+                                        progress.dismiss();
+                                    }
+
+                                    @Override
+                                    public void onCancelled(DatabaseError databaseError) {
+                                        Log.d("error","error");
+                                        Toast.makeText(Guardian_MenuDrawerActivity.this, "An error occurred.",Toast.LENGTH_SHORT).show();
+
+                                    }
+                                });
                             }
                         });
 

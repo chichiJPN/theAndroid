@@ -135,7 +135,9 @@ public class Guardian_DashboardActivity extends AppCompatActivity {
                 progress.dismiss();
             }
             @Override
-            public void onCancelled(DatabaseError databaseError) {}
+            public void onCancelled(DatabaseError databaseError) {
+                progress.dismiss();
+            }
         });
     }
 
@@ -162,7 +164,7 @@ public class Guardian_DashboardActivity extends AppCompatActivity {
             reminderRow.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    popUpDelete("Reminders",reminderName, reminder.getReward(), reminder.getConsequence());
+                    popUp("Reminders",reminder.getStatus(), reminderName, reminder.getReward(), reminder.getConsequence(), reminder.getNumCompletion(), reminder.getNumCompletionForReward());
                 }
             });
             LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.FILL_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
@@ -215,7 +217,12 @@ public class Guardian_DashboardActivity extends AppCompatActivity {
             Log.d("Task Name", taskName);
 
             LinearLayout taskRow = new LinearLayout(Guardian_DashboardActivity.this);
-            taskRow.setBackgroundResource(R.drawable.performance_reminder_border);
+            if(task.getStatus().equals("Pending")) {
+                taskRow.setBackgroundResource(R.drawable.left_border_yellow);
+            } else {
+                taskRow.setBackgroundResource(R.drawable.left_border_black);
+            }
+
             taskRow.setPadding(20, 20, 20, 20);
             taskRow.setOrientation(LinearLayout.HORIZONTAL);
             taskRow.setWeightSum(15);
@@ -225,7 +232,7 @@ public class Guardian_DashboardActivity extends AppCompatActivity {
             taskRow.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    popUpDelete("Tasks",taskName, task.getReward(),task.getConsequence());
+                    popUp("Tasks",task.getStatus(),taskName, task.getReward(),task.getConsequence(), task.getNumCompletion(), task.getNumCompletionForReward());
                 }
             });
 
@@ -251,7 +258,7 @@ public class Guardian_DashboardActivity extends AppCompatActivity {
             progressbar.setProgress(task.getNumCompletion());
 
             TextView tvPercentage = new TextView(Guardian_DashboardActivity.this);
-            tvPercentage.setText("" + (numCompletions/completionsForReward * 100.0) + "%");
+            tvPercentage.setText("" + Math.round((float)numCompletions/(float)completionsForReward * 100.0) + "%");
             tvPercentage.setTextColor(Color.BLACK);
             tvPercentage.setGravity(Gravity.RIGHT);
             tvPercentage.setEms(10);
@@ -279,7 +286,12 @@ public class Guardian_DashboardActivity extends AppCompatActivity {
         final int numStepsToday = (Integer.parseInt(child.child("numStepsToday").getValue().toString())) + 1 ;
 
         LinearLayout Row = new LinearLayout(Guardian_DashboardActivity.this);
-        Row.setBackgroundResource(R.drawable.performance_reminder_border);
+        if(steps.getStatus().equals("Pending")) {
+            Row.setBackgroundResource(R.drawable.left_border_yellow);
+        } else {
+            Row.setBackgroundResource(R.drawable.left_border_black);
+        }
+
         Row.setPadding(20, 20, 20, 20);
         Row.setOrientation(LinearLayout.HORIZONTAL);
         Row.setWeightSum(15);
@@ -290,7 +302,7 @@ public class Guardian_DashboardActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Log.d("Num Steps", " is " + steps.getNumCompletionForReward());
-                popUpDelete("Steps",numStepsToday + " Steps",steps.getReward(),steps.getConsequence());
+                popUp("Steps",steps.getStatus(), numStepsToday + " Steps",steps.getReward(),steps.getConsequence(), steps.getNumCompletion(), steps.getNumCompletionForReward());
             }
         });
 
@@ -315,7 +327,7 @@ public class Guardian_DashboardActivity extends AppCompatActivity {
         progressbar.setProgress(numStepsToday);
 
         TextView tvPercentage = new TextView(Guardian_DashboardActivity.this);
-        tvPercentage.setText("" + (numStepsToday/completionsForReward * 100.0) + "%");
+        tvPercentage.setText("" + Math.round((float)numStepsToday/(float)completionsForReward * 100.0) + "%");
         tvPercentage.setTextColor(Color.BLACK);
         tvPercentage.setGravity(Gravity.RIGHT);
         tvPercentage.setEms(10);
@@ -330,20 +342,83 @@ public class Guardian_DashboardActivity extends AppCompatActivity {
         steps_taken_container.addView(Row);
     }
 
-    public void popUpDelete(final String assignmentType, final String name, String reward, String Consequence) {
+    public void popUp(final String assignmentType, String status, final String name, String reward, String Consequence, int numCompletion, int numCompletionsForReward) {
         Log.d(assignmentType, name);
         AlertDialog.Builder builder = new AlertDialog.Builder(Guardian_DashboardActivity.this);
 
         builder.setTitle(assignmentType + ": "+name);
         builder.setMessage("Reward:" + reward +"\nConsequence:" + Consequence);
 
+        if(!assignmentType.equals("Reminders") && (numCompletion >= numCompletionsForReward)) {
+            builder.setNegativeButton("Reset", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    mDatabase.child("users").child(childID).child("assignments").child(assignmentType).child(name).child("numCompletion").setValue(0);
+                    refreshList();
+                }
+            });
+        }
+
+        if(status.equals("Pending")) {
+            builder.setNeutralButton("Update", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    confirmUpdate();
+                }
+
+                private void confirmUpdate() {
+                    AlertDialog.Builder builder = new AlertDialog.Builder(Guardian_DashboardActivity.this);
+                    builder.setTitle("Have you confirmed that the task has been completed?");
+
+                    // Set up the buttons
+                    builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+
+                            progress.show();
+                            // Change status of task to "set"
+                            mDatabase.child("users").child(childID).child("assignments").child(assignmentType).child(name).child("status").setValue("Set");
+
+                            // increment "numCompletion" field by 1
+                            mDatabase.child("users").child(childID).child("assignments").child(assignmentType).child(name).addListenerForSingleValueEvent(new ValueEventListener() {
+                                @Override
+                                public void onDataChange(DataSnapshot assignment) {
+                                    int numCompletion = Integer.parseInt(assignment.child("numCompletion").getValue().toString());
+                                    numCompletion++;
+                                    mDatabase.child("users").child(childID).child("assignments").child(assignmentType).child(name).child("numCompletion").setValue(numCompletion);
+                                    progress.dismiss();
+                                    Toast.makeText(getApplicationContext(), name + " has been updated",
+                                            Toast.LENGTH_SHORT).show();
+                                    refreshList();
+                                }
+
+                                @Override
+                                public void onCancelled(DatabaseError databaseError) {
+                                    progress.dismiss();
+                                    Toast.makeText(getApplicationContext(), "An error occurred",
+                                            Toast.LENGTH_SHORT).show();
+                                    refreshList();
+                                }
+                            });
+
+                        }
+                    });
+                    builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.cancel();
+                        }
+                    });
+
+                    builder.show();
+                }
+            });
+        }
+
         // Set up the buttons
         builder.setPositiveButton("Delete", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                mDatabase.child("users").child(childID).child("assignments").child(assignmentType).child(name).removeValue();
-                Toast.makeText(getApplicationContext(), name + " has been deleted",
-                        Toast.LENGTH_SHORT).show();
                 confirmDelete();
             }
 
@@ -369,12 +444,6 @@ public class Guardian_DashboardActivity extends AppCompatActivity {
                 });
 
                 builder.show();
-            }
-        });
-        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.cancel();
             }
         });
 

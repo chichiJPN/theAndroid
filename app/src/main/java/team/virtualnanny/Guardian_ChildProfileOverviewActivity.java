@@ -148,71 +148,7 @@ public class Guardian_ChildProfileOverviewActivity extends FragmentActivity impl
 
         initComponents();
         setClickListeners();
-
-        // gets data of the guardian
-        mDatabase.child("users").child(guardianID).addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-
-                // checks if the guardian created any fences then saves the in variables
-                if(dataSnapshot.child("Fences").exists()) {
-                    addFencesToMap(dataSnapshot);
-                }
-
-                if(dataSnapshot.child("children").exists()) {
-                    progress.show();
-                    Log.d("GuardianOverview", "Children exists");
-                    for (DataSnapshot snapshot : dataSnapshot.child("children").getChildren()) {
-
-                        final String childID = snapshot.getValue().toString();
-                        Log.d("GuardianOverview", "ChildID is " + childID);
-                        Log.d("GuardianOverview", "GuardianID is " + guardianID);
-                        // gets the parent of the child
-                        mDatabase.child("users").child(childID).child("Parent").addListenerForSingleValueEvent(new ValueEventListener() {
-                            @Override
-                            public void onDataChange(DataSnapshot parent) {
-
-
-                                // checks if the parent exists and if the child's parent is the logged in user
-                                if(parent.exists() && parent.getValue().toString().equals(guardianID)) {
-                                    Log.d("Guardian_overview","im in here");
-
-                                    ImageView ii = new ImageView(Guardian_ChildProfileOverviewActivity.this);
-                                    ii.setBackgroundResource(R.drawable.profile_child1);
-                                    ii.setTag(childID);
-                                    // adds a click listener when an image at the top is clicked
-                                    ii.setOnClickListener(new View.OnClickListener() {
-                                        @Override
-                                        public void onClick(View v) {
-                                            currentlySelectedUserID = (String)v.getTag();
-                                            currentUserReference = mDatabase.child("users").child(currentlySelectedUserID);
-
-                                            progress.show();
-                                            removeHistoryMarkersAndLines();
-                                            refreshPageData();
-
-
-
-
-                                        }
-                                    });
-                                    panel_header.addView(ii);
-                                }
-                                progress.dismiss();
-                            }
-
-                            @Override
-                            public void onCancelled(DatabaseError databaseError) {}
-                        });
-                    }
-                } else {
-                    Toast.makeText(Guardian_ChildProfileOverviewActivity.this, "No Children",Toast.LENGTH_SHORT).show();
-                }
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {}
-        });
+        getAndSetDataListeners();
 
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
@@ -220,149 +156,6 @@ public class Guardian_ChildProfileOverviewActivity extends FragmentActivity impl
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
-    }
-
-    private void refreshPageData() {
-        if(currentUserReference != null) {
-            currentUserReference.removeEventListener(valueEventListener);
-        }
-        currentUserReference.addValueEventListener(valueEventListener);
-    }
-
-    private void setHistoryMarkersandLines() {
-        Calendar cal = Calendar.getInstance();
-        cal.add(Calendar.DATE, -7); // set the calendar to 7 days ago
-        String date7daysAgo = ""+cal.getTimeInMillis();
-
-        progress.show();
-        mDatabase.child("users").child(currentlySelectedUserID).child("locationHistory").orderByKey().startAt(date7daysAgo).addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot locationHistorySnapshot) {
-
-                for(DataSnapshot locationHistory: locationHistorySnapshot.getChildren()) {
-                    String timestamp = locationHistory.getKey();
-
-                    Double latitude = Double.parseDouble(locationHistory.child("Latitude").getValue().toString());
-                    Double longitude = Double.parseDouble(locationHistory.child("Longitude").getValue().toString());
-
-                    Calendar calendar = Calendar.getInstance();
-                    calendar.setTimeInMillis(Long.parseLong(timestamp)); // set the time according to locationhistory timestamp
-
-                    LatLng newLatLng = new LatLng(latitude, longitude);
-
-                    MarkerOptions markerOptions = new MarkerOptions()
-                            .position(newLatLng)
-                            .title(calendar.getTime().toString())
-                            .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE));
-
-                    final Marker historyLocationMarker = mMap.addMarker(markerOptions);
-
-                    historyLocationMarkers.add(historyLocationMarker);
-//                            historyLocationMarkers = new Marker();
-/*
-                            int mYear = calendar.get(Calendar.YEAR);
-                            int mMonth = calendar.get(Calendar.MONTH);
-                            int mDay = calendar.get(Calendar.DAY_OF_MONTH);
-                            */
-                }
-
-
-                // this part is for drawing lines between the markers
-                // loop through all history location markers
-                // and draw a line between two markers
-                int totalHistoryMarkers = historyLocationMarkers.size() - 1;
-                for(int x = 0; x < totalHistoryMarkers; x++) {
-
-                    // check if there is still a next available marker in the list
-                    if(x + 1 < totalHistoryMarkers) {
-
-                        Marker marker1 = historyLocationMarkers.get(x);
-                        Marker marker2 = historyLocationMarkers.get(x + 1);
-
-                        PolylineOptions options = new PolylineOptions().add(marker1.getPosition(),marker2.getPosition())
-                                .width(5)
-                                .color(Color.BLUE);
-                        Polyline line = mMap.addPolyline(options);
-                        historyLocationLines.add(line);
-                    }
-                }
-
-                Log.d(TAG, "Count of children is "+locationHistorySnapshot.getChildrenCount());
-                progress.dismiss();
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });
-    }
-
-    private void initComponents() {
-        // initializes and sets all components from xml
-        btn_phone = (ImageButton) findViewById(R.id.btn_phone);
-        btn_message = (ImageButton) findViewById(R.id.btn_message);
-        btn_fence = (ImageButton) findViewById(R.id.btn_fence);
-        btn_limit = (ImageButton) findViewById(R.id.btn_limit);
-        btn_alarm = (ImageButton) findViewById(R.id.btn_alarm);
-        btn_dashboard = (ImageButton) findViewById(R.id.btn_dashboard);
-        btn_history = (ImageButton) findViewById(R.id.btn_history);
-        btn_task = (ImageButton) findViewById(R.id.btn_task);
-        layout = (RelativeLayout) findViewById(R.id.RelativeLayout1);
-        switch_phonelock = (Switch) findViewById(R.id.switch_phonelock);
-        switch_locationAccess = (Switch) findViewById(R.id.switch_locationaccess);
-        tv_name = (TextView) findViewById(R.id.textview_name);
-        tv_address = (TextView) findViewById(R.id.textview_address);
-        textview_steps = (TextView) findViewById(R.id.textview_steps);
-        panel_header = (LinearLayout) findViewById(R.id.panel_header);
-
-        // initializes the Lists
-        existingFences = new ArrayList<Db_fence>();
-        existingMarkers = new ArrayList<Marker>();
-        existingCircles = new ArrayList<Circle>();
-
-        historyLocationMarkers = new ArrayList<Marker>();
-        historyLocationLines = new ArrayList<Polyline>();
-
-        // instantiates the loading screen
-        progress = new ProgressDialog(Guardian_ChildProfileOverviewActivity.this);
-        progress.setTitle("Loading");
-        progress.setMessage("Wait while loading...");
-        progress.setCancelable(false); // disable dismiss by tapping outside of the dialog
-
-        mDatabase = FirebaseDatabase.getInstance().getReference();		// gets a reference to the database
-        mAuth = FirebaseAuth.getInstance();
-
-        guardianID = mAuth.getCurrentUser().getUid();
-
-        // this listener listens if data changes on regarding the child
-        valueEventListener = new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                Log.d("Child overview" , "data changed");
-
-                Db_user user = dataSnapshot.getValue(Db_user.class);
-                currentUserNumber = user.getPhone();
-                switch_phonelock.setChecked(user.getRemoteLock());
-                switch_locationAccess.setChecked(user.getRemoteTracking());
-                String firstName = user.getFirstName();
-                String lastName = user.getLastName();
-                String address = user.getAddress();
-
-                int numSteps = user.getNumSteps();
-
-                tv_name.setText(firstName + " "+ lastName);
-                tv_address.setText(address);
-                textview_steps.setText("" +numSteps + " steps");
-                animateAndZoomToLocation(user.getLastLatitude(), user.getLastLongitude());
-                childMarker.setTitle(firstName + "" + lastName);
-                progress.dismiss();
-
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {}
-        };
     }
 
     private void setClickListeners() {
@@ -518,35 +311,264 @@ public class Guardian_ChildProfileOverviewActivity extends FragmentActivity impl
 
     }
 
-    // adds the fences to the map
-    private void addFencesToMap(DataSnapshot dataSnapshot) {
-        DataSnapshot Fences = dataSnapshot.child("Fences");
-        for(DataSnapshot snapshotFence : Fences.getChildren()) {
-            Db_fence fence = snapshotFence.getValue(Db_fence.class);
+    private void getAndSetDataListeners() {
+        // gets data of the guardian
+        mDatabase.child("users").child(guardianID).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
 
-            String fenceName = snapshotFence.getKey();
-            double fenceLatitude = fence.getLatitude();
-            double fenceLongitude = fence.getLongitude();
 
-            LatLng newLatLng = new LatLng(fenceLatitude, fenceLongitude);
-            MarkerOptions markerOptions = new MarkerOptions()
-                    .position(newLatLng)
-                    .title(fenceName);
+                if(dataSnapshot.child("children").exists()) {
+                    progress.show();
+                    Log.d("GuardianOverview", "Children exists");
+                    for (DataSnapshot snapshot : dataSnapshot.child("children").getChildren()) {
 
-            final Marker marker = mMap.addMarker(markerOptions);
+                        final String childID = snapshot.getValue().toString();
+                        Log.d("GuardianOverview", "ChildID is " + childID);
+                        Log.d("GuardianOverview", "GuardianID is " + guardianID);
+                        // gets the parent of the child
+                        mDatabase.child("users").child(childID).child("Parent").addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(DataSnapshot parent) {
 
-            CircleOptions circleOptions = new CircleOptions()
-                    .center(newLatLng)
-                    .strokeColor(fence.getSafety() == 1 ? Color.GREEN : Color.RED)
-                    .radius(fence.getRadius())
-                    .zIndex(20);
-            final Circle mapCircle = mMap.addCircle(circleOptions);
 
-            existingMarkers.add(marker);
-            existingCircles.add(mapCircle);
-            existingFences.add(fence);
+                                // checks if the parent exists and if the child's parent is the logged in user
+                                if(parent.exists() && parent.getValue().toString().equals(guardianID)) {
+                                    Log.d("Guardian_overview","im in here");
+
+                                    ImageView ii = new ImageView(Guardian_ChildProfileOverviewActivity.this);
+                                    ii.setBackgroundResource(R.drawable.profile_child1);
+                                    ii.setTag(childID);
+                                    // adds a click listener when an image at the top is clicked
+                                    ii.setOnClickListener(new View.OnClickListener() {
+                                        @Override
+                                        public void onClick(View v) {
+                                            currentlySelectedUserID = (String)v.getTag();
+                                            currentUserReference = mDatabase.child("users").child(currentlySelectedUserID);
+
+                                            progress.show();
+                                            removeHistoryMarkersAndLines();
+                                            refreshPageData();
+                                        }
+                                    });
+                                    panel_header.addView(ii);
+                                }
+                                progress.dismiss();
+                            }
+
+                            @Override
+                            public void onCancelled(DatabaseError databaseError) {}
+                        });
+                    }
+                } else {
+                    Toast.makeText(Guardian_ChildProfileOverviewActivity.this, "No Children",Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {}
+        });
+    }
+
+    private void refreshPageData() {
+        if(currentUserReference != null) {
+            currentUserReference.removeEventListener(valueEventListener);
         }
+        currentUserReference.addValueEventListener(valueEventListener);
+    }
 
+    private void setHistoryMarkersandLines() {
+        Calendar cal = Calendar.getInstance();
+        cal.add(Calendar.DATE, -7); // set the calendar to 7 days ago
+        String date7daysAgo = ""+cal.getTimeInMillis();
+
+        progress.show();
+        mDatabase.child("users").child(currentlySelectedUserID).child("locationHistory").orderByKey().startAt(date7daysAgo).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot locationHistorySnapshot) {
+
+                for(DataSnapshot locationHistory: locationHistorySnapshot.getChildren()) {
+                    String timestamp = locationHistory.getKey();
+
+                    Double latitude = Double.parseDouble(locationHistory.child("Latitude").getValue().toString());
+                    Double longitude = Double.parseDouble(locationHistory.child("Longitude").getValue().toString());
+
+                    Calendar calendar = Calendar.getInstance();
+                    calendar.setTimeInMillis(Long.parseLong(timestamp)); // set the time according to locationhistory timestamp
+
+                    LatLng newLatLng = new LatLng(latitude, longitude);
+
+                    MarkerOptions markerOptions = new MarkerOptions()
+                            .position(newLatLng)
+                            .title(calendar.getTime().toString())
+                            .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE));
+
+                    final Marker historyLocationMarker = mMap.addMarker(markerOptions);
+
+                    historyLocationMarkers.add(historyLocationMarker);
+//                            historyLocationMarkers = new Marker();
+/*
+                            int mYear = calendar.get(Calendar.YEAR);
+                            int mMonth = calendar.get(Calendar.MONTH);
+                            int mDay = calendar.get(Calendar.DAY_OF_MONTH);
+                            */
+                }
+
+
+                // this part is for drawing lines between the markers
+                // loop through all history location markers
+                // and draw a line between two markers
+                int totalHistoryMarkers = historyLocationMarkers.size() - 1;
+                for(int x = 0; x < totalHistoryMarkers; x++) {
+
+                    // check if there is still a next available marker in the list
+                    if(x + 1 < totalHistoryMarkers) {
+
+                        Marker marker1 = historyLocationMarkers.get(x);
+                        Marker marker2 = historyLocationMarkers.get(x + 1);
+
+                        PolylineOptions options = new PolylineOptions().add(marker1.getPosition(),marker2.getPosition())
+                                .width(5)
+                                .color(Color.BLUE);
+                        Polyline line = mMap.addPolyline(options);
+                        historyLocationLines.add(line);
+                    }
+                }
+
+                Log.d(TAG, "Count of children is "+locationHistorySnapshot.getChildrenCount());
+                progress.dismiss();
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+    }
+
+    private void initComponents() {
+        // initializes and sets all components from xml
+        btn_phone = (ImageButton) findViewById(R.id.btn_phone);
+        btn_message = (ImageButton) findViewById(R.id.btn_message);
+        btn_fence = (ImageButton) findViewById(R.id.btn_fence);
+        btn_limit = (ImageButton) findViewById(R.id.btn_limit);
+        btn_alarm = (ImageButton) findViewById(R.id.btn_alarm);
+        btn_dashboard = (ImageButton) findViewById(R.id.btn_dashboard);
+        btn_history = (ImageButton) findViewById(R.id.btn_history);
+        btn_task = (ImageButton) findViewById(R.id.btn_task);
+        layout = (RelativeLayout) findViewById(R.id.RelativeLayout1);
+        switch_phonelock = (Switch) findViewById(R.id.switch_phonelock);
+        switch_locationAccess = (Switch) findViewById(R.id.switch_locationaccess);
+        tv_name = (TextView) findViewById(R.id.textview_name);
+        tv_address = (TextView) findViewById(R.id.textview_address);
+        textview_steps = (TextView) findViewById(R.id.textview_steps);
+        panel_header = (LinearLayout) findViewById(R.id.panel_header);
+
+        // initializes the Lists
+        existingFences = new ArrayList<Db_fence>();
+        existingMarkers = new ArrayList<Marker>();
+        existingCircles = new ArrayList<Circle>();
+
+        historyLocationMarkers = new ArrayList<Marker>();
+        historyLocationLines = new ArrayList<Polyline>();
+
+        // instantiates the loading screen
+        progress = new ProgressDialog(Guardian_ChildProfileOverviewActivity.this);
+        progress.setTitle("Loading");
+        progress.setMessage("Wait while loading...");
+        progress.setCancelable(false); // disable dismiss by tapping outside of the dialog
+
+        mDatabase = FirebaseDatabase.getInstance().getReference();		// gets a reference to the database
+        mAuth = FirebaseAuth.getInstance();
+
+        guardianID = mAuth.getCurrentUser().getUid();
+
+        // this listener listens if data changes on regarding the child
+        valueEventListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                Log.d("Child overview" , "data changed");
+
+                Db_user user = dataSnapshot.getValue(Db_user.class);
+                currentUserNumber = user.getPhone();
+                switch_phonelock.setChecked(user.getRemoteLock());
+                switch_locationAccess.setChecked(user.getRemoteTracking());
+                String firstName = user.getFirstName();
+                String lastName = user.getLastName();
+                String address = user.getAddress();
+
+                int numSteps = user.getNumSteps();
+
+                tv_name.setText(firstName + " "+ lastName);
+                tv_address.setText(address);
+                textview_steps.setText("" +numSteps + " steps");
+                animateAndZoomToLocation(user.getLastLatitude(), user.getLastLongitude());
+                childMarker.setTitle(firstName + "" + lastName);
+                progress.dismiss();
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {}
+        };
+    }
+
+
+    // replaces fences on current map with fresh data from database
+    private void refreshFences() {
+        mDatabase.child("users").child(guardianID).child("Fences").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+
+            public void onDataChange(DataSnapshot Fences) {
+
+                // Loops through all existing markers from map and removes them
+                for(Marker marker : existingMarkers) {
+                    marker.remove();
+                }
+
+                // Loops through all existing markers from map and removes them
+                for(Circle circle : existingCircles) {
+                    circle.remove();
+                }
+
+                existingMarkers.clear();
+                existingCircles.clear();
+                existingFences.clear();
+
+                // checks if the guardian created any fences then saves the in variables
+                if(Fences.exists()) {
+                    for(DataSnapshot snapshotFence : Fences.getChildren()) {
+                        Db_fence fence = snapshotFence.getValue(Db_fence.class);
+
+                        String fenceName = snapshotFence.getKey();
+                        double fenceLatitude = fence.getLatitude();
+                        double fenceLongitude = fence.getLongitude();
+
+                        LatLng newLatLng = new LatLng(fenceLatitude, fenceLongitude);
+                        MarkerOptions markerOptions = new MarkerOptions()
+                                .position(newLatLng)
+                                .title(fenceName);
+
+                        final Marker marker = mMap.addMarker(markerOptions);
+
+                        CircleOptions circleOptions = new CircleOptions()
+                                .center(newLatLng)
+                                .strokeColor(fence.getSafety() == 1 ? Color.GREEN : Color.RED)
+                                .radius(fence.getRadius())
+                                .zIndex(20);
+                        final Circle mapCircle = mMap.addCircle(circleOptions);
+
+                        existingMarkers.add(marker);
+                        existingCircles.add(mapCircle);
+                        existingFences.add(fence);
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+            }
+        });
     }
 
     private void removeHistoryMarkersAndLines() {
@@ -592,15 +614,13 @@ public class Guardian_ChildProfileOverviewActivity extends FragmentActivity impl
         CameraUpdate zoom=CameraUpdateFactory.zoomTo(20);
         mMap.animateCamera(zoom);
         mMap.setMyLocationEnabled(true);
-
-
-
     }
 	
     @Override
     public void onStart() {
         super.onStart();
         mAuth.addAuthStateListener(mAuthListener);
+        refreshFences();
     }
 
     @Override
@@ -618,6 +638,7 @@ public class Guardian_ChildProfileOverviewActivity extends FragmentActivity impl
             ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION }, 1234);
         }
     }
+
 }
 
 

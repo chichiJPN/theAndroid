@@ -14,6 +14,8 @@
     <uses-permission android:name="android.permission.SEND_SMS" />
     <uses-permission android:name="android.permission.CALL_PHONE" />
     <uses-permission android:name="android.permission.VIBRATE"/>
+    <uses-permission android:name="android.permission.DISABLE_KEYGUARD" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
 
     <application
         android:allowBackup="true"
@@ -24,8 +26,6 @@
 
         <!-- android:theme="@android:style/Theme.NoTitleBar" -->
 
-        <!-- <activity android:name=".Child_ChildOverviewActivity"> -->
-
 
         <activity android:name=".MainActivity">
             <intent-filter>
@@ -34,10 +34,11 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
         <meta-data
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />
+
+        <!-- Declare the services -->
         <service
             android:name=".Guardian_Service"
             android:label="Guardian Service" >
@@ -47,6 +48,20 @@
             android:label="Child Service" >
         </service>
 
+        <!-- Declare the receivers -->
+        <receiver
+            android:name=".Test_MyAdminReceiver"
+            android:permission="android.permission.BIND_DEVICE_ADMIN">
+            <meta-data
+                android:name="android.app.device_admin"
+                android:resource="@xml/admin"/>
+
+            <intent-filter>
+                <action android:name="android.app.action.DEVICE_ADMIN_ENABLED"/>
+            </intent-filter>
+        </receiver>
+
+        <!-- Declare the activities -->
         <activity
             android:name=".ForgotPasswordActivity"
             android:label=""

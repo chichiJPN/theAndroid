@@ -140,7 +140,7 @@ public class Child_MenuDrawerActivity extends AppCompatActivity {
                         break;
                     case "Send SOS":
                         // check first if child has a parent before sending SOS
-                        if(parentID == null) {
+                        if(parentID == null || parentNumber == null || parentNumber.equals("")) {
                             Toast.makeText(Child_MenuDrawerActivity.this, "Please add a parent first.",Toast.LENGTH_SHORT).show();
                             return;
                         }
@@ -152,10 +152,10 @@ public class Child_MenuDrawerActivity extends AppCompatActivity {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
 
-//                                FirebaseDatabase.getInstance().getReference().child("users").child(currentUserID).child("SOS").setValue(true);
+                                FirebaseDatabase.getInstance().getReference().child("users").child(parentID).child("SOS").setValue(true);
                                 Log.d("ChildMenu", parentNumber);
-//                                SmsManager smsManager = SmsManager.getDefault(); // uses the default sim in your phone
- //                               smsManager.sendTextMessage(parentNumber,null,"Help! I am in trouble!",null,null);
+                                SmsManager smsManager = SmsManager.getDefault(); // uses the default sim in your phone
+                               smsManager.sendTextMessage(parentNumber,null,"Help! I am in trouble!",null,null);
 
                             }
                         });
@@ -179,7 +179,7 @@ public class Child_MenuDrawerActivity extends AppCompatActivity {
                         final EditText input_parentid = new EditText(Child_MenuDrawerActivity.this);
 
                         input_parentid.setInputType(InputType.TYPE_CLASS_TEXT);
-                        input_parentid.setHint("Parent ID");
+                        input_parentid.setHint("Parent Email");
                         input_parentid.setGravity(Gravity.CENTER | Gravity.BOTTOM);
                         layout.addView(input_parentid);
 
@@ -190,44 +190,45 @@ public class Child_MenuDrawerActivity extends AppCompatActivity {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
 
-                                final String parentID  = input_parentid.getText().toString().trim();
+                                final String parentEmail  = input_parentid.getText().toString().trim();
                                 final DatabaseReference users = FirebaseDatabase.getInstance().getReference().child("users");
 
-                                if(parentID.equals("")) {
+                                if(parentEmail == null || parentEmail.equals("")) {
                                     Toast.makeText(Child_MenuDrawerActivity.this, "Please do not leave the field empty",Toast.LENGTH_SHORT).show();
                                     return;
                                 }
 
-
                                 progress.show();
-                                //check if parent ID exists
-                                users.child(parentID).addListenerForSingleValueEvent(new ValueEventListener() {
+                                mDatabase.child("users").orderByChild("email").equalTo(parentEmail).addListenerForSingleValueEvent(new ValueEventListener() {
                                     @Override
-                                    public void onDataChange(DataSnapshot dataSnapshot) {
-                                        if(dataSnapshot.exists()) {
-                                            Db_user User = dataSnapshot.getValue(Db_user.class);
-                                            Log.d("Role",User.getRole());
-                                            if(User.getRole().equals("Parent")) {
-                                                final String currentUserID = mAuth.getCurrentUser().getUid();
+                                    public void onDataChange(DataSnapshot parentSnapshot) {
+                                        if(parentSnapshot.exists()) {
+                                            Db_user user = parentSnapshot.getValue(Db_user.class);
+                                            // check if user is a child
+                                            if(user.getRole().equals("Parent")) {
 
-                                                Map<String, Object> parentUpdate = new HashMap<String, Object>(); //
-                                                parentUpdate.put("Parent", parentID);
-                                                users.child(currentUserID).updateChildren(parentUpdate);
+                                                    Map<String, Object> parentUpdate = new HashMap<String, Object>(); //
+                                                    parentUpdate.put("Parent", parentID);
+                                                    users.child(currentUserID).updateChildren(parentUpdate);
+                                                    Toast.makeText(Child_MenuDrawerActivity.this, "Parent has been added.",Toast.LENGTH_SHORT).show();
 
-                                                Toast.makeText(Child_MenuDrawerActivity.this, dataSnapshot.child("firstName").getValue() + " is now your parent.",Toast.LENGTH_SHORT).show();
                                             } else {
                                                 Toast.makeText(Child_MenuDrawerActivity.this, "Person is not a parent.",Toast.LENGTH_SHORT).show();
                                             }
                                         } else {
                                             Toast.makeText(Child_MenuDrawerActivity.this, "Parent does not exist.",Toast.LENGTH_SHORT).show();
                                         }
+
+                                        progress.dismiss();
                                     }
 
                                     @Override
-                                    public void onCancelled(DatabaseError databaseError) {}
-                                });
-                                progress.dismiss();
+                                    public void onCancelled(DatabaseError databaseError) {
+                                        Log.d("error","error");
+                                        Toast.makeText(Child_MenuDrawerActivity.this, "An error occurred.",Toast.LENGTH_SHORT).show();
 
+                                    }
+                                });
                             }
                         });
                         builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {

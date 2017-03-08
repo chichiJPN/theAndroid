@@ -35,6 +35,10 @@ import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polygon;
+import com.google.android.gms.maps.model.PolygonOptions;
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -64,16 +68,31 @@ public class Guardian_SetFenceActivity extends AppCompatActivity implements OnMa
     private List<Db_fence> existingFences;
     private List<Marker> existingMarkers;
     private List<Circle> existingCircles;
+    private List<Polygon> existingPolygons;
+
+
     private String currentUserID;
 
     private Marker lastMarkerClicked = null;
 
+    private List<Circle> tempCircles;
+    private List<Polyline> tempPolylines;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        setContentView(R.layout.guardian_set_fence);
+        setTitle("Set Geo fence");
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true); // enables back button on the action bar
+        getSupportActionBar().setBackgroundDrawable(new ColorDrawable(0xFF000000)); // sets the actions bar as black
+
         existingFences = new ArrayList<Db_fence>();
         existingMarkers = new ArrayList<Marker>();
         existingCircles = new ArrayList<Circle>();
+        tempCircles = new ArrayList<Circle>();
+        tempPolylines = new ArrayList<Polyline>();
+        existingPolygons = new ArrayList<Polygon>();
 
         progress = new ProgressDialog(Guardian_SetFenceActivity.this);
         progress.setTitle("Loading");
@@ -82,6 +101,8 @@ public class Guardian_SetFenceActivity extends AppCompatActivity implements OnMa
 
         mDatabase = FirebaseDatabase.getInstance().getReference();
         mAuth = FirebaseAuth.getInstance();
+        currentUserID = mAuth.getCurrentUser().getUid();
+
         mAuthListener = new FirebaseAuth.AuthStateListener() {
             @Override
             public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
@@ -94,12 +115,7 @@ public class Guardian_SetFenceActivity extends AppCompatActivity implements OnMa
                 }
             }
         };
-        currentUserID = mAuth.getCurrentUser().getUid();
 
-        setContentView(R.layout.guardian_set_fence);
-        setTitle("Set Geo fence");
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true); // enables back button on the action bar
-        getSupportActionBar().setBackgroundDrawable(new ColorDrawable(0xFF000000)); // sets the actions bar as black
 
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
@@ -124,205 +140,27 @@ public class Guardian_SetFenceActivity extends AppCompatActivity implements OnMa
                 onBackPressed();
                 break;
             case R.id.action_add:
-                Toast.makeText(getApplicationContext(), "Click on anywhere on the map to add the center of the fence",
-                        Toast.LENGTH_LONG).show();
 
-                mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
+                AlertDialog.Builder builder = new AlertDialog.Builder(Guardian_SetFenceActivity.this);
+                builder.setTitle("Choose fence type");
+
+                // Set up the buttons
+                builder.setPositiveButton("Circular", new DialogInterface.OnClickListener() {
                     @Override
-                    public void onMapClick(LatLng point) {
-                        Location location = new Location("Test");
-                        location.setLatitude(point.latitude);
-                        location.setLongitude(point.longitude);
-                        location.setTime(new Date().getTime()); //Set time as current Date
-
-                        //Convert Location to LatLng
-                        LatLng newLatLng = new LatLng(location.getLatitude(), location.getLongitude());
-                        mMap.moveCamera(CameraUpdateFactory.newLatLng(newLatLng));
-
-                        MarkerOptions markerOptions = new MarkerOptions()
-                                .position(newLatLng)
-                                .title(newLatLng.toString());
-
-                        final Marker marker = mMap.addMarker(markerOptions);
-
-                        AlertDialog.Builder builder = new AlertDialog.Builder(Guardian_SetFenceActivity.this);
-                        builder.setTitle("Add Fence");
-
-                        LinearLayout layout = new LinearLayout(Guardian_SetFenceActivity.this);
-                        layout.setOrientation(LinearLayout.VERTICAL);
-
-                        final EditText input_fenceName = new EditText(Guardian_SetFenceActivity.this);
-                        input_fenceName.setInputType(InputType.TYPE_CLASS_TEXT);
-                        input_fenceName.setHint("Fence Name");
-                        layout.addView(input_fenceName);
-                        CircleOptions circleOptions = new CircleOptions()
-                                .center(newLatLng)
-                                .radius(0)
-                                .zIndex(20);
-                        final Circle mapCircle = mMap.addCircle(circleOptions);
-                        final SeekBar input_radius = new SeekBar(Guardian_SetFenceActivity.this);
-                        input_radius.setMax(10000);
-                        input_radius.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-                            @Override
-                            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                                Log.d("seekbar", ""+progress);
-                                mapCircle.setRadius(progress);
-                            }
-
-                            @Override
-                            public void onStartTrackingTouch(SeekBar seekBar) {
-
-                            }
-
-                            @Override
-                            public void onStopTrackingTouch(SeekBar seekBar) {
-
-                            }
-                        });
-                        //input_radius.setInputType(InputType.TYPE_CLASS_NUMBER);
-                        //input_radius.setHint("Input Radius");
-                        layout.addView(input_radius);
-
-                        final RadioGroup rg = new RadioGroup(Guardian_SetFenceActivity.this); //create the RadioGroup
-                        rg.setOrientation(RadioGroup.HORIZONTAL);//or RadioGroup.VERTICAL
-
-                        final RadioButton rb_safezone = new RadioButton(Guardian_SetFenceActivity.this);
-                        rb_safezone.setText(R.string.fence_safezone);
-                        rb_safezone.setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-                                mapCircle.setStrokeColor(Color.GREEN);
-                            }
-                        });
-                        rg.addView(rb_safezone);
-
-                        final RadioButton rb_dangerzone = new RadioButton(Guardian_SetFenceActivity.this);
-                        rb_dangerzone.setText(R.string.fence_dangerzone);
-                        rb_dangerzone.setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-                                mapCircle.setStrokeColor(Color.RED);
-                            }
-                        });
-                        rg.addView(rb_dangerzone);
-
-
-                        layout.addView(rg);
-                        builder.setView(layout);
-
-                        // Set up the buttons
-                        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                            final String fenceName = input_fenceName.getText().toString().trim();
-                            final int checkedButton = rg.getCheckedRadioButtonId();
-                            final double radius = mapCircle.getRadius();
-                            final double newMarkerLongitude = marker.getPosition().longitude;
-                            final double newMarkerLatitude = marker.getPosition().latitude;
-                            boolean flag = true;
-
-                            if(fenceName.isEmpty()) {
-                                Toast.makeText(Guardian_SetFenceActivity.this, "Please do not leave fence Name empty",Toast.LENGTH_SHORT).show();
-                                flag = false;
-                            }else if(checkedButton == -1) {
-                                Toast.makeText(Guardian_SetFenceActivity.this, "Please select fence safety",Toast.LENGTH_SHORT).show();
-                                flag = false;
-                            } else {
-                                // latitude is y
-                                // longitude is x
-                                // checks if fences will overlap
-                                if(existingFences != null && !existingFences.isEmpty()) {
-                                    for (Db_fence fence : existingFences) {
-                                        double x2 = newMarkerLongitude;
-                                        double x1 = fence.getLongitude();
-                                        double y2 = newMarkerLatitude;
-                                        double y1 = fence.getLatitude();
-
-                                        Location loc1 = new Location("");
-                                        loc1.setLatitude(fence.getLatitude());
-                                        loc1.setLongitude(fence.getLongitude());
-
-                                        Location loc2 = new Location("");
-                                        loc2.setLatitude(newMarkerLatitude);
-                                        loc2.setLongitude(newMarkerLongitude);
-
-                                        float distance = loc1.distanceTo(loc2);
-//                                        double distance = Math.sqrt(Math.pow((x2 - x1), 2) + Math.pow((y2 - y1), 2));
-                                        double radius1 = fence.getRadius();
-                                        double radius2 = mapCircle.getRadius();
-
-                                        Log.d("radius1",""+radius1);
-                                        Log.d("radius2",""+radius2);
-                                        Log.d("distance",""+distance);
-
-                                        if (distance < radius1 + radius2) {
-                                            Toast.makeText(Guardian_SetFenceActivity.this, "Circles are overlapping", Toast.LENGTH_SHORT).show();
-                                            flag = false;
-                                            break;
-                                        }
-                                    }
-                                }
-                            }
-
-                            if(flag == false ) {
-                                marker.remove();
-                                mapCircle.remove();
-                                return;
-                            }
-
-                            progress.show();
-                            final DatabaseReference users = mDatabase.child("users");
-
-                            users.child(currentUserID).addListenerForSingleValueEvent(new ValueEventListener() {
-                                @Override
-                                public void onDataChange(DataSnapshot dataSnapshot) {
-
-                                    View radioButton = rg.findViewById(checkedButton);
-                                    int safetyID = rg.indexOfChild(radioButton) + 1;
-
-
-                                    Map<String, Object> fenceProperties = new HashMap<String, Object>(); //
-                                    fenceProperties.put("radius", radius);
-                                    fenceProperties.put("safety", safetyID);
-                                    fenceProperties.put("longitude",newMarkerLongitude);
-                                    fenceProperties.put("latitude",newMarkerLatitude);
-
-                                    users.child(currentUserID).child("Fences").child(fenceName).updateChildren(fenceProperties);
-                                    marker.setTitle(fenceName);
-                                    Toast.makeText(Guardian_SetFenceActivity.this, "Fence has been added.",Toast.LENGTH_SHORT).show();
-
-                                    existingCircles.add(mapCircle);
-                                    existingMarkers.add(marker);
-                                    existingFences.add(new Db_fence(radius,safetyID,newMarkerLongitude,newMarkerLatitude));
-                                    progress.dismiss();
-                                }
-
-                                @Override
-                                public void onCancelled(DatabaseError databaseError) {
-                                    marker.remove();
-                                    mapCircle.remove();
-                                    progress.dismiss();
-                                }
-                            });
-                            }
-                        });
-                        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                            mMap.setOnMapClickListener(null);
-                            dialog.cancel();
-                            }
-                        });
-
-                        AlertDialog dialog = builder.create();
-                        dialog.setCancelable(false);
-                        WindowManager.LayoutParams wmlp = dialog.getWindow().getAttributes();
-
-                        wmlp.gravity = Gravity.BOTTOM;
-                        dialog.show();
-
+                    public void onClick(DialogInterface dialog, int which) {
+                        addCircularFence();
                     }
                 });
+
+                builder.setNeutralButton("Polygon",new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        addPolygonFence();
+                    }
+
+
+                });
+                builder.show();
                 break;
             case R.id.action_delete:
                 // check if there was a marker clicked
@@ -330,12 +168,12 @@ public class Guardian_SetFenceActivity extends AppCompatActivity implements OnMa
 
                     for(int x = 0; x < existingMarkers.size();x++) {
                         if(lastMarkerClicked.equals(existingMarkers.get(x))) {
-                            AlertDialog.Builder builder = new AlertDialog.Builder(Guardian_SetFenceActivity.this);
-                            builder.setTitle("Are you sure you want to delete Geofence '"+lastMarkerClicked.getTitle()+"'");
+                            AlertDialog.Builder deleteBuilder = new AlertDialog.Builder(Guardian_SetFenceActivity.this);
+                            deleteBuilder.setTitle("Are you sure you want to delete Geofence '"+lastMarkerClicked.getTitle()+"'");
 
                             // Set up the buttons
                             final int finalX = x;
-                            builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                            deleteBuilder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
 
@@ -350,21 +188,18 @@ public class Guardian_SetFenceActivity extends AppCompatActivity implements OnMa
                                     mDatabase.child("users").child(currentUserID).child("Fences").child(fenceName).removeValue();
                                 }
                             });
-                            builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
+                            deleteBuilder.setNegativeButton("No", new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
                                     dialog.cancel();
                                 }
                             });
 
-                            builder.show();
+                            deleteBuilder.show();
 
                             break;
                         }
                     }
-
-
-
                 } else {
                     Toast.makeText(getApplicationContext(), "Please click on a marker and click on the delete button",
                             Toast.LENGTH_SHORT).show();
@@ -372,14 +207,14 @@ public class Guardian_SetFenceActivity extends AppCompatActivity implements OnMa
 
                 break;
             case R.id.action_search:
-                AlertDialog.Builder builder = new AlertDialog.Builder(Guardian_SetFenceActivity.this);
-                builder.setTitle("Please input the name of the geolocation:");
+                AlertDialog.Builder searchBuilder = new AlertDialog.Builder(Guardian_SetFenceActivity.this);
+                searchBuilder.setTitle("Please input the name of the geolocation:");
 
                 final EditText input = new EditText(Guardian_SetFenceActivity.this);
 
-                builder.setView(input);
+                searchBuilder.setView(input);
 
-                builder.setPositiveButton("Search", new DialogInterface.OnClickListener() {
+                searchBuilder.setPositiveButton("Search", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         String fenceName = input.getText().toString();
@@ -395,19 +230,361 @@ public class Guardian_SetFenceActivity extends AppCompatActivity implements OnMa
 
                     }
                 });
-                builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                searchBuilder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         dialog.cancel();
                     }
                 });
 
-                builder.show();
+                searchBuilder.show();
 
                 break;
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    private void addPolygonFence() {
+        Toast.makeText(getApplicationContext(), "Click on points on the map to create your fence. Long click the map to add the shape.",
+                Toast.LENGTH_LONG).show();
+        mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener(){
+
+            @Override
+            public void onMapClick(LatLng newPoint) {
+
+                CircleOptions circleOption = new CircleOptions()
+                        .center(newPoint)
+                        .radius(1)
+                        .fillColor(Color.GREEN)
+                        .strokeColor(Color.GREEN)
+                        .zIndex(20);
+                final Circle mapCircle = mMap.addCircle(circleOption);
+                tempCircles.add(mapCircle);
+
+                // draw a line between the last two markers if the points added are greater than 1
+                if(tempCircles.size() > 1) {
+
+                    // get the position of the 2nd to the last point in the circle
+                    Circle secondTolastCircle = tempCircles.get(tempCircles.size() - 2);
+                    LatLng lastPointPosition = secondTolastCircle.getCenter();
+
+
+                    // check if the new line will intersect with the previous lines
+                    boolean line_intersects = false;
+
+                    // loop through all the previous lines while comparing them with the new line
+                    for(Polyline templine : tempPolylines) {
+                        List<LatLng> points = templine.getPoints();
+                        LatLng firstpoint = points.get(0);
+                        LatLng secondpoint = points.get(1);
+
+                        // if the lines interesect, set variable to true then break
+                        if(line_intersects(lastPointPosition.latitude, lastPointPosition.longitude,
+                                            newPoint.latitude, newPoint.longitude,
+                                            firstpoint.latitude, firstpoint.longitude,
+                                            secondpoint.latitude, secondpoint.longitude)){
+                            line_intersects = true;
+                        }
+                    }
+
+                    if(line_intersects == true) {
+                        Toast.makeText(getApplicationContext(), "Lines cannot interesect!",
+                                Toast.LENGTH_SHORT).show();
+                    } else {
+                        PolylineOptions polylineoption = new PolylineOptions().add(lastPointPosition, newPoint)
+                                .width(5)
+                                .color(Color.GREEN);
+                        Polyline line = mMap.addPolyline(polylineoption);
+                        tempPolylines.add(line);
+                    }
+
+
+                }
+
+
+
+            }
+        });
+
+        mMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
+
+            @Override
+            public void onMapLongClick(LatLng latLng) {
+
+                Log.d("numCircles", ""+tempCircles.size());
+                // number of points need to be 2 or more
+                if(tempCircles.size() > 1) {
+
+                    // connect the last circle and the first circle
+                    Circle lastCircle = tempCircles.get(tempCircles.size() - 1);
+                    LatLng lastPointPosition = lastCircle.getCenter();
+                    Circle firstCircle = tempCircles.get(0);
+                    LatLng firstPointPosition = firstCircle.getCenter();
+
+                    PolylineOptions polylineoption = new PolylineOptions().add(lastPointPosition, firstPointPosition)
+                            .width(5)
+                            .color(Color.GREEN);
+                    Polyline line = mMap.addPolyline(polylineoption);
+                    tempPolylines.add(line);
+
+                    PolygonOptions polygon = new PolygonOptions();
+                    polygon.fillColor(Color.GRAY);
+                    for(Polyline polyline : tempPolylines) {
+                        List<LatLng> points = polyline.getPoints();
+                        polygon.add(points.get(0),points.get(1));
+                    }
+
+                    Polygon mapPolygon = mMap.addPolygon(polygon);
+
+
+                } else {
+                    Toast.makeText(getApplicationContext(), "Click on points on the map to create your fence. Long click the map to add the shape.",
+                            Toast.LENGTH_SHORT).show();
+                }
+                mMap.setOnMapClickListener(null);
+                mMap.setOnMapLongClickListener(null);
+                for(Circle circle : tempCircles) {
+                    circle.remove();
+                }
+
+                for(Polyline thepolyline: tempPolylines) {
+                    thepolyline.remove();
+                }
+
+                tempCircles.clear();
+                tempPolylines.clear();
+                Log.d("asdas","I was long clicked");
+            }
+        });
+    }
+
+
+    private boolean line_intersects(double p0_x, double p0_y,
+                                    double p1_x, double p1_y,
+                                    double p2_x, double p2_y,
+                                    double  p3_x,double  p3_y) {
+
+        double s1_x, s1_y, s2_x, s2_y;
+        s1_x = p1_x - p0_x;
+        s1_y = p1_y - p0_y;
+        s2_x = p3_x - p2_x;
+        s2_y = p3_y - p2_y;
+
+        double s, t;
+        s = (-s1_y * (p0_x - p2_x) + s1_x * (p0_y - p2_y)) / (-s2_x * s1_y + s1_x * s2_y);
+        t = ( s2_x * (p0_y - p2_y) - s2_y * (p0_x - p2_x)) / (-s2_x * s1_y + s1_x * s2_y);
+
+        if (s > 0 && s < 1 && t > 0 && t < 1)
+        {
+            // Collision detected
+            return true;
+        }
+
+        return false; // No collision
+    }
+
+    private void addCircularFence() {
+        Toast.makeText(getApplicationContext(), "Click on anywhere on the map to add the center of the fence",
+                Toast.LENGTH_LONG).show();
+
+        mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
+            @Override
+            public void onMapClick(LatLng point) {
+                Location location = new Location("Test");
+                location.setLatitude(point.latitude);
+                location.setLongitude(point.longitude);
+                location.setTime(new Date().getTime()); //Set time as current Date
+
+                //Convert Location to LatLng
+                LatLng newLatLng = new LatLng(location.getLatitude(), location.getLongitude());
+                mMap.moveCamera(CameraUpdateFactory.newLatLng(newLatLng));
+
+                MarkerOptions markerOptions = new MarkerOptions()
+                        .position(newLatLng)
+                        .title(newLatLng.toString());
+
+                final Marker marker = mMap.addMarker(markerOptions);
+
+                AlertDialog.Builder builder = new AlertDialog.Builder(Guardian_SetFenceActivity.this);
+                builder.setTitle("Add Fence");
+
+                LinearLayout layout = new LinearLayout(Guardian_SetFenceActivity.this);
+                layout.setOrientation(LinearLayout.VERTICAL);
+
+                final EditText input_fenceName = new EditText(Guardian_SetFenceActivity.this);
+                input_fenceName.setInputType(InputType.TYPE_CLASS_TEXT);
+                input_fenceName.setHint("Fence Name");
+                layout.addView(input_fenceName);
+                CircleOptions circleOptions = new CircleOptions()
+                        .center(newLatLng)
+                        .radius(0)
+                        .zIndex(20);
+                final Circle mapCircle = mMap.addCircle(circleOptions);
+                final SeekBar input_radius = new SeekBar(Guardian_SetFenceActivity.this);
+                input_radius.setMax(10000);
+                input_radius.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+                    @Override
+                    public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                        Log.d("seekbar", ""+progress);
+                        mapCircle.setRadius(progress);
+                    }
+
+                    @Override
+                    public void onStartTrackingTouch(SeekBar seekBar) {
+
+                    }
+
+                    @Override
+                    public void onStopTrackingTouch(SeekBar seekBar) {
+
+                    }
+                });
+                //input_radius.setInputType(InputType.TYPE_CLASS_NUMBER);
+                //input_radius.setHint("Input Radius");
+                layout.addView(input_radius);
+
+                final RadioGroup rg = new RadioGroup(Guardian_SetFenceActivity.this); //create the RadioGroup
+                rg.setOrientation(RadioGroup.HORIZONTAL);//or RadioGroup.VERTICAL
+
+                final RadioButton rb_safezone = new RadioButton(Guardian_SetFenceActivity.this);
+                rb_safezone.setText(R.string.fence_safezone);
+                rb_safezone.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        mapCircle.setStrokeColor(Color.GREEN);
+                    }
+                });
+                rg.addView(rb_safezone);
+
+                final RadioButton rb_dangerzone = new RadioButton(Guardian_SetFenceActivity.this);
+                rb_dangerzone.setText(R.string.fence_dangerzone);
+                rb_dangerzone.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        mapCircle.setStrokeColor(Color.RED);
+                    }
+                });
+                rg.addView(rb_dangerzone);
+
+
+                layout.addView(rg);
+                builder.setView(layout);
+
+                // Set up the buttons
+                builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        final String fenceName = input_fenceName.getText().toString().trim();
+                        final int checkedButton = rg.getCheckedRadioButtonId();
+                        final double radius = mapCircle.getRadius();
+                        final double newMarkerLongitude = marker.getPosition().longitude;
+                        final double newMarkerLatitude = marker.getPosition().latitude;
+                        boolean flag = true;
+
+                        if(fenceName.isEmpty()) {
+                            Toast.makeText(Guardian_SetFenceActivity.this, "Please do not leave fence Name empty",Toast.LENGTH_SHORT).show();
+                            flag = false;
+                        }else if(checkedButton == -1) {
+                            Toast.makeText(Guardian_SetFenceActivity.this, "Please select fence safety",Toast.LENGTH_SHORT).show();
+                            flag = false;
+                        } else {
+                            // latitude is y
+                            // longitude is x
+                            // checks if fences will overlap
+                            if(existingFences != null && !existingFences.isEmpty()) {
+                                for (Db_fence fence : existingFences) {
+                                    double x2 = newMarkerLongitude;
+                                    double x1 = fence.getLongitude();
+                                    double y2 = newMarkerLatitude;
+                                    double y1 = fence.getLatitude();
+
+                                    Location loc1 = new Location("");
+                                    loc1.setLatitude(fence.getLatitude());
+                                    loc1.setLongitude(fence.getLongitude());
+
+                                    Location loc2 = new Location("");
+                                    loc2.setLatitude(newMarkerLatitude);
+                                    loc2.setLongitude(newMarkerLongitude);
+
+                                    float distance = loc1.distanceTo(loc2);
+//                                        double distance = Math.sqrt(Math.pow((x2 - x1), 2) + Math.pow((y2 - y1), 2));
+                                    double radius1 = fence.getRadius();
+                                    double radius2 = mapCircle.getRadius();
+
+                                    Log.d("radius1",""+radius1);
+                                    Log.d("radius2",""+radius2);
+                                    Log.d("distance",""+distance);
+
+                                    if (distance < radius1 + radius2) {
+                                        Toast.makeText(Guardian_SetFenceActivity.this, "Circles are overlapping", Toast.LENGTH_SHORT).show();
+                                        flag = false;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+
+                        if(flag == false ) {
+                            marker.remove();
+                            mapCircle.remove();
+                            return;
+                        }
+
+                        progress.show();
+                        final DatabaseReference users = mDatabase.child("users");
+
+                        users.child(currentUserID).addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(DataSnapshot dataSnapshot) {
+
+                                View radioButton = rg.findViewById(checkedButton);
+                                int safetyID = rg.indexOfChild(radioButton) + 1;
+
+
+                                Map<String, Object> fenceProperties = new HashMap<String, Object>(); //
+                                fenceProperties.put("radius", radius);
+                                fenceProperties.put("safety", safetyID);
+                                fenceProperties.put("longitude",newMarkerLongitude);
+                                fenceProperties.put("latitude",newMarkerLatitude);
+
+                                users.child(currentUserID).child("Fences").child(fenceName).updateChildren(fenceProperties);
+                                marker.setTitle(fenceName);
+                                Toast.makeText(Guardian_SetFenceActivity.this, "Fence has been added.",Toast.LENGTH_SHORT).show();
+
+                                existingCircles.add(mapCircle);
+                                existingMarkers.add(marker);
+                                existingFences.add(new Db_fence(radius,safetyID,newMarkerLongitude,newMarkerLatitude,"Circle"));
+                                progress.dismiss();
+                            }
+
+                            @Override
+                            public void onCancelled(DatabaseError databaseError) {
+                                marker.remove();
+                                mapCircle.remove();
+                                progress.dismiss();
+                            }
+                        });
+                    }
+                });
+                builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        mMap.setOnMapClickListener(null);
+                        dialog.cancel();
+                    }
+                });
+
+                AlertDialog dialog = builder.create();
+                dialog.setCancelable(false);
+                WindowManager.LayoutParams wmlp = dialog.getWindow().getAttributes();
+
+                wmlp.gravity = Gravity.BOTTOM;
+                dialog.show();
+
+            }
+        });
+
     }
 
     /**
@@ -474,7 +651,7 @@ public class Guardian_SetFenceActivity extends AppCompatActivity implements OnMa
 
             @Override
             public void onCancelled(DatabaseError databaseError) {
-
+                progress.dismiss();
             }
         });
 
@@ -484,6 +661,7 @@ public class Guardian_SetFenceActivity extends AppCompatActivity implements OnMa
     public void onStart() {
         super.onStart();
         mAuth.addAuthStateListener(mAuthListener);
+
     }
 
     @Override

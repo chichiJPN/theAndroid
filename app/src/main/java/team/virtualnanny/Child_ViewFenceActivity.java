@@ -122,7 +122,7 @@ public class Child_ViewFenceActivity extends AppCompatActivity implements OnMapR
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
         requestPermissionAccessLocation();
-        mMap.setMapType(GoogleMap.MAP_TYPE_SATELLITE);
+        mMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
         mMap.setMyLocationEnabled(true);
         CameraUpdate zoom=CameraUpdateFactory.zoomTo(14);
         mMap.animateCamera(zoom);
@@ -172,13 +172,15 @@ public class Child_ViewFenceActivity extends AppCompatActivity implements OnMapR
 //                        existingFences.add(fence);
                     }
 
-                    progress.dismiss();
                 }
+                progress.dismiss();
 
             }
 
             @Override
-            public void onCancelled(DatabaseError databaseError) {}
+            public void onCancelled(DatabaseError databaseError) {
+                progress.dismiss();
+            }
         });
     }
 

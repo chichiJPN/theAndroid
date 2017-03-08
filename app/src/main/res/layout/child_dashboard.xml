@@ -18,7 +18,6 @@
             android:background="@drawable/tasks_background" >
 
             <LinearLayout
-                android:id="@+id/LinearLayout4"
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
@@ -29,7 +28,6 @@
                 android:paddingLeft="15sp"
                 android:background="#FFFFFF">
                 <LinearLayout
-                    android:id="@+id/LinearLayout5"
                     android:layout_width="fill_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
@@ -40,8 +38,7 @@
                     <ImageView
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        app:srcCompat="@drawable/pic1"
-                        android:id="@+id/imageView6"
+                        android:id="@+id/profpic"
                         android:layout_weight="3" />
 
                     <TextView
@@ -49,7 +46,7 @@
                         android:layout_height="wrap_content"
                         android:text="John's Performance"
                         android:textSize="30sp"
-                        android:id="@+id/enableText3"
+                        android:id="@+id/profpic_description"
                         android:layout_gravity="center"
                         android:layout_weight="7" />
                 </LinearLayout>
@@ -122,6 +119,7 @@
                     android:orientation="vertical"
                     android:layout_gravity="center"
                     android:gravity="center"
+                    android:id="@+id/remind_container"
                     android:background="#FFFFFF">
                     <LinearLayout
                         android:layout_width="fill_parent"
@@ -219,6 +217,7 @@
                     android:orientation="vertical"
                     android:layout_gravity="center"
                     android:gravity="center"
+                    android:id="@+id/tasks_container"
                     android:background="#FFFFFF">
                     <LinearLayout
                         android:layout_width="fill_parent"
@@ -317,6 +316,7 @@
                     android:orientation="vertical"
                     android:layout_gravity="center"
                     android:gravity="center"
+                    android:id="@+id/steps_taken_container"
                     android:background="#FFFFFF">
                     <LinearLayout
                         android:layout_width="fill_parent"

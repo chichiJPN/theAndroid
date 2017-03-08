@@ -372,31 +372,7 @@ public class Child_ChildOverviewActivity extends FragmentActivity implements OnM
 //        CameraUpdate zoom=CameraUpdateFactory.zoomTo(20);
 //        mMap.animateCamera(zoom);
     }
-/*
-    class MyLocationListener implements LocationListener {
-        @Override
-        public void onLocationChanged(Location location) {
-            if(runflag == false) {
-                return;
-            }
-            Log.d("child overview","onLocationChanged");
 
-            if(location == null){
-                return;
-            }
-            animateAndZoomToLocation(location.getLatitude(), location.getLongitude());
-        }
-
-        @Override
-        public void onStatusChanged(String s, int i, Bundle bundle) {}
-
-        @Override
-        public void onProviderEnabled(String s) {}
-
-        @Override
-        public void onProviderDisabled(String s) {}
-    }
-    */
 }
 
 

@@ -23,15 +23,13 @@ import com.google.android.gms.maps.model.LatLng;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.Calendar;
 import java.util.concurrent.TimeUnit;
 
 
-public class MainService extends Service {
+public class Test_MainService extends Service {
     private MyLocationListener myLocationListener;
     private LocationManager myManager;
     private Location lastLocation;
@@ -81,7 +79,7 @@ public class MainService extends Service {
     private void createNotificationForStartForeground() {
         Log.d("service","createNotificationForStartForeground");
 
-        Intent intent = new Intent(getApplicationContext(), MapsActivity.class);
+        Intent intent = new Intent(getApplicationContext(), Test_MapsActivity.class);
         intent.putExtra("fromNotification", true);
         PendingIntent pIntent = PendingIntent.getActivity(getApplicationContext(), (int) System.currentTimeMillis(), intent, 0);
         Notification notification = new NotificationCompat.Builder(this)
@@ -101,7 +99,7 @@ public class MainService extends Service {
         }else {
             this.lastLocation = location;
         }
-        SharedPreferences sp = getSharedPreferences(MapsActivity.PREFS_FILE_NAME, MODE_PRIVATE);
+        SharedPreferences sp = getSharedPreferences(Test_MapsActivity.PREFS_FILE_NAME, MODE_PRIVATE);
         double fullDistance = Double.parseDouble(sp.getString("distance", "0"));
         String distanceS = String.valueOf(fullDistance + distance);
         sp.edit().putString("lat", String.valueOf(location.getLatitude()))
@@ -115,7 +113,7 @@ public class MainService extends Service {
     public static void deleteFile(){
         Log.d("service","deleteFile");
         File root = android.os.Environment.getExternalStorageDirectory();
-        File file = new File(root.getAbsolutePath(), MapsActivity.LAT_LNG_FILE_NAME);
+        File file = new File(root.getAbsolutePath(), Test_MapsActivity.LAT_LNG_FILE_NAME);
         if(file.exists()){
             file.delete();
         }
@@ -142,7 +140,7 @@ public class MainService extends Service {
         File root = android.os.Environment.getExternalStorageDirectory();
         File dir = new File(root.getAbsolutePath());
         dir.mkdirs();
-        File file = new File(dir, MapsActivity.LAT_LNG_FILE_NAME);
+        File file = new File(dir, Test_MapsActivity.LAT_LNG_FILE_NAME);
         try {
 //            FileOutputStream f = new FileOutputStream(file);
             FileWriter  pw = new FileWriter(file);
@@ -183,7 +181,7 @@ public class MainService extends Service {
             if(location == null){
                 return;
             }
-            Toast.makeText(MainService.this, "loc:"+location.getSpeed(), Toast.LENGTH_SHORT).show();
+            Toast.makeText(Test_MainService.this, "loc:"+location.getSpeed(), Toast.LENGTH_SHORT).show();
             if (location.getSpeed() * 60 * 60 / 1000 < 10 && location.getSpeed() * 60 * 60 / 1000 > 2) {
                 setLastLocation(location);
             }

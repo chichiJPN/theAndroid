@@ -2,7 +2,11 @@ package team.virtualnanny;
 
 import android.*;
 import android.Manifest;
+import android.app.ActivityManager;
 import android.app.ProgressDialog;
+import android.app.admin.DevicePolicyManager;
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
@@ -53,18 +57,24 @@ public class MainActivity extends AppCompatActivity {
         checkAppPermissions();
 
 
-/*
 
+/*
         // this part is for adding and removing values in the database. Please ignoere
         FirebaseDatabase.getInstance().getReference().child("users").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot usersSnapshot) {
-                Map<String, Object> fenceProperties = new HashMap<String, Object>(); //
-                fenceProperties.put("SOS", false);
+//                Map<String, Object> fenceProperties = new HashMap<String, Object>(); //
+//                fenceProperties.put("SOS", false);
                 for(DataSnapshot userSnapshot: usersSnapshot.getChildren()) {
                     String userKey = userSnapshot.getKey().toString();
-//                    FirebaseDatabase.getInstance().getReference().child("users").child(userKey).child("remoteTrack").removeValue();
-                    FirebaseDatabase.getInstance().getReference().child("users").child(userKey).updateChildren(fenceProperties);
+                    if(userSnapshot.child("Fences").exists()) {
+                        DataSnapshot FencesSnapshot = userSnapshot.child("Fences");
+                        for(DataSnapshot fence: FencesSnapshot.getChildren()) {
+                            String fenceName = fence.getKey().toString();
+                            FirebaseDatabase.getInstance().getReference().child("users").child(userKey).child(fenceName).removeValue();
+                            FirebaseDatabase.getInstance().getReference().child("users").child(userKey).child("Fences").child(fenceName).child("type").setValue("Circle");
+                        }
+                    }
                 }
             }
 
@@ -72,6 +82,7 @@ public class MainActivity extends AppCompatActivity {
             public void onCancelled(DatabaseError databaseError) {}
         });
 */
+
 
 
         mAuthListener = new FirebaseAuth.AuthStateListener() {

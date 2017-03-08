@@ -133,7 +133,6 @@ public class RegisterAccountActivity extends AppCompatActivity {
         btn_register.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                progress.show();
 				EditText editText_firstName = (EditText) findViewById(R.id.editText_firstName);
                 EditText editText_lastName = (EditText) findViewById(R.id.editText_lastName);
                 EditText editText_address = (EditText) findViewById(R.id.editText_address);
@@ -198,6 +197,7 @@ public class RegisterAccountActivity extends AppCompatActivity {
                 }
 
 
+                progress.show();
 
                 mAuth.createUserWithEmailAndPassword(email, password)
                         .addOnCompleteListener(RegisterAccountActivity.this, new OnCompleteListener<AuthResult>() {

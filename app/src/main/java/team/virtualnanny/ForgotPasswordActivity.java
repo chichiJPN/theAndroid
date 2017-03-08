@@ -35,7 +35,11 @@ public class ForgotPasswordActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 EditText text_email = (EditText) findViewById(R.id.editText_forgotpass_email);
-
+                if(text_email.equals("")) {
+                    Toast.makeText(getApplicationContext(), "Please do not leave field blank",
+                            Toast.LENGTH_SHORT).show();
+                    return;
+                }
                 FirebaseAuth auth = FirebaseAuth.getInstance();
                 String emailAddress = text_email.getText().toString().trim();
 

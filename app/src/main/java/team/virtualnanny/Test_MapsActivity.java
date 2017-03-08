@@ -7,7 +7,6 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Handler;
-import android.os.Looper;
 import android.os.Message;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
@@ -25,9 +24,8 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.MarkerOptions;
 
-public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
+public class Test_MapsActivity extends FragmentActivity implements OnMapReadyCallback {
     public static double StepSize = 0.6;
     public final static String PREFS_FILE_NAME = "MyAppPrefs";
     public final static String LAT_LNG_FILE_NAME = "Coords.txt";
@@ -149,7 +147,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             Toast.makeText(this, "Started", Toast.LENGTH_SHORT).show();
             return;
         }
-        MainService.deleteFile();
+        Test_MainService.deleteFile();
         sp.edit().putBoolean("state", true).commit();
         if(mMap != null ){
             mMap.clear();
@@ -157,7 +155,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         try {
             countStepsTextView.setText("Num Steps" + " 0");
         }catch (Exception e){}
-        Intent intent = new Intent(getApplicationContext(), MainService.class);
+        Intent intent = new Intent(getApplicationContext(), Test_MainService.class);
         startService(intent);
         startRefreshingThread();
         btnStartCounting.setEnabled(false);
@@ -194,7 +192,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 .remove("lng")
                 .remove("newValue")
                 .remove("distance").commit();
-        Intent intent = new Intent(getApplicationContext(), MainService.class);
+        Intent intent = new Intent(getApplicationContext(), Test_MainService.class);
         stopService(intent);
         stopRefreshingThread();
         if(mMap != null ){
@@ -273,7 +271,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                SharedPreferences sp = getSharedPreferences(MapsActivity.PREFS_FILE_NAME, MODE_PRIVATE);
+                SharedPreferences sp = getSharedPreferences(Test_MapsActivity.PREFS_FILE_NAME, MODE_PRIVATE);
                 if(!sp.getBoolean("newValue", false)){
                     continue;
                 }

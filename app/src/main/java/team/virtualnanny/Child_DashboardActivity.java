@@ -2,11 +2,14 @@ package team.virtualnanny;
 
 
 import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.icu.text.DecimalFormat;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Gravity;
@@ -16,6 +19,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -65,6 +69,29 @@ public class Child_DashboardActivity extends AppCompatActivity {
         };
     }
 
+
+    private void initComponents() {
+        profpic = (ImageView) findViewById(R.id.profpic);
+        profpic_description = (TextView) findViewById(R.id.profpic_description);
+        remind_container = (LinearLayout) findViewById(R.id.remind_container);
+        tasks_container = (LinearLayout) findViewById(R.id.tasks_container);
+        steps_taken_container = (LinearLayout) findViewById(R.id.steps_taken_container);
+
+        progress = new ProgressDialog(Child_DashboardActivity.this);
+        progress.setTitle("Loading");
+        progress.setMessage("Wait while loading...");
+        progress.setCancelable(false); // disable dismiss by tapping outside of the dialog
+
+        mDatabase = FirebaseDatabase.getInstance().getReference();
+        mAuth = FirebaseAuth.getInstance();
+        currentUserID = mAuth.getCurrentUser().getUid();
+
+        //        ProgressBar progressbar_consequence = (ProgressBar) findViewById(R.id.progressbar_consequence);
+        // ProgressBar progressbar_reward = (ProgressBar) findViewById(R.id.progressbar_reward);
+        profpic.setBackgroundResource(R.drawable.profile_child1);
+
+    }
+
     public void refreshList() {
         progress.show();
         mDatabase.child("users").child(currentUserID).addListenerForSingleValueEvent(new ValueEventListener() {
@@ -112,6 +139,7 @@ public class Child_DashboardActivity extends AppCompatActivity {
                 @Override
                 public void onClick(View v) {
 //                    popUpDelete("Reminders",reminderName, reminder.getReward(), reminder.getConsequence());
+                    popUp("Reminders",reminder.getStatus(), reminderName, "Reward: "+reminder.getReward()+"\nConsequence: "+reminder.getConsequence());
                 }
             });
             LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.FILL_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
@@ -164,7 +192,11 @@ public class Child_DashboardActivity extends AppCompatActivity {
             Log.d("Task Name", taskName);
 
             LinearLayout taskRow = new LinearLayout(Child_DashboardActivity.this);
-            taskRow.setBackgroundResource(R.drawable.performance_reminder_border);
+            if(task.getStatus().equals("Pending")) {
+                taskRow.setBackgroundResource(R.drawable.left_border_yellow);
+            } else {
+                taskRow.setBackgroundResource(R.drawable.left_border_black);
+            }
             taskRow.setPadding(20, 20, 20, 20);
             taskRow.setOrientation(LinearLayout.HORIZONTAL);
             taskRow.setWeightSum(15);
@@ -174,7 +206,7 @@ public class Child_DashboardActivity extends AppCompatActivity {
             taskRow.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    //popUpDelete("Tasks",taskName, task.getReward(),task.getConsequence());
+                    popUp("Tasks",task.getStatus(), taskName, "Reward: "+task.getReward()+"\nConsequence: "+task.getConsequence());
                 }
             });
 
@@ -200,7 +232,7 @@ public class Child_DashboardActivity extends AppCompatActivity {
             progressbar.setProgress(task.getNumCompletion());
 
             TextView tvPercentage = new TextView(Child_DashboardActivity.this);
-            tvPercentage.setText("" + (numCompletions/completionsForReward * 100.0) + "%");
+            tvPercentage.setText("" + Math.round((float)numCompletions/(float)completionsForReward * 100.0) + "%");
             tvPercentage.setTextColor(Color.BLACK);
             tvPercentage.setGravity(Gravity.RIGHT);
             tvPercentage.setEms(10);
@@ -264,7 +296,9 @@ public class Child_DashboardActivity extends AppCompatActivity {
         progressbar.setProgress(numStepsToday);
 
         TextView tvPercentage = new TextView(Child_DashboardActivity.this);
-        tvPercentage.setText("" + (numStepsToday/completionsForReward * 100.0) + "%");
+
+
+        tvPercentage.setText("" + Math.round((float)numStepsToday/(float)completionsForReward * 100.0) + "%");
         tvPercentage.setTextColor(Color.BLACK);
         tvPercentage.setGravity(Gravity.RIGHT);
         tvPercentage.setEms(10);
@@ -279,28 +313,52 @@ public class Child_DashboardActivity extends AppCompatActivity {
         steps_taken_container.addView(Row);
     }
 
+    private void popUp(final String type,String currentStatus, final String taskName,String details) {
 
-    private void initComponents() {
-        profpic = (ImageView) findViewById(R.id.profpic);
-        profpic_description = (TextView) findViewById(R.id.profpic_description);
-        remind_container = (LinearLayout) findViewById(R.id.remind_container);
-        tasks_container = (LinearLayout) findViewById(R.id.tasks_container);
-        steps_taken_container = (LinearLayout) findViewById(R.id.steps_taken_container);
+        AlertDialog.Builder builder = new AlertDialog.Builder(Child_DashboardActivity.this);
 
-        progress = new ProgressDialog(Child_DashboardActivity.this);
-        progress.setTitle("Loading");
-        progress.setMessage("Wait while loading...");
-        progress.setCancelable(false); // disable dismiss by tapping outside of the dialog
+        builder.setTitle(taskName + " : ");
+        builder.setMessage(details);
 
-        mDatabase = FirebaseDatabase.getInstance().getReference();
-        mAuth = FirebaseAuth.getInstance();
-        currentUserID = mAuth.getCurrentUser().getUid();
+        // Set up the buttons
 
-        //        ProgressBar progressbar_consequence = (ProgressBar) findViewById(R.id.progressbar_consequence);
-        // ProgressBar progressbar_reward = (ProgressBar) findViewById(R.id.progressbar_reward);
+        if(currentStatus.equals("Set") && type.equals("Tasks")) {
+            builder.setPositiveButton("Set for approval", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    AlertDialog.Builder builder = new AlertDialog.Builder(Child_DashboardActivity.this);
+                    builder.setTitle("Are you sure you finished the task \""+ taskName + "\"?");
 
+                    // Set up the buttons
+                    builder.setPositiveButton("I finished this", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            mDatabase.child("users").child(currentUserID).child("assignments").child(type).child(taskName).child("status").setValue("Pending");
+
+                            Toast.makeText(getApplicationContext(), taskName + " has been updated",
+                                    Toast.LENGTH_SHORT).show();
+                            refreshList();
+                        }
+                    });
+                    builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.cancel();
+                        }
+                    });
+
+                    builder.show();
+                }
+            });
+            builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    dialog.cancel();
+                }
+            });
+        }
+        builder.show();
     }
-
 
 
 
