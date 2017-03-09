@@ -33,8 +33,5 @@ public class Db_fence {
     public double getLatitude() {
         return latitude;
     }
-
-    public String getType() {
-        return type;
-    }
+    public String getType() {return type; }
 }

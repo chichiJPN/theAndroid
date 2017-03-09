@@ -203,22 +203,24 @@ public class Child_MenuDrawerActivity extends AppCompatActivity {
                                     @Override
                                     public void onDataChange(DataSnapshot parentSnapshot) {
                                         if(parentSnapshot.exists()) {
+                                            for(DataSnapshot snapshot: parentSnapshot.getChildren()) {
+                                                parentSnapshot= snapshot;
+                                            }
+
                                             Db_user user = parentSnapshot.getValue(Db_user.class);
+                                            String parentKey = parentSnapshot.getKey();
                                             // check if user is a child
                                             if(user.getRole().equals("Parent")) {
-
                                                     Map<String, Object> parentUpdate = new HashMap<String, Object>(); //
-                                                    parentUpdate.put("Parent", parentID);
+                                                    parentUpdate.put("Parent", parentKey);
                                                     users.child(currentUserID).updateChildren(parentUpdate);
                                                     Toast.makeText(Child_MenuDrawerActivity.this, "Parent has been added.",Toast.LENGTH_SHORT).show();
-
                                             } else {
                                                 Toast.makeText(Child_MenuDrawerActivity.this, "Person is not a parent.",Toast.LENGTH_SHORT).show();
                                             }
                                         } else {
                                             Toast.makeText(Child_MenuDrawerActivity.this, "Parent does not exist.",Toast.LENGTH_SHORT).show();
                                         }
-
                                         progress.dismiss();
                                     }
 
@@ -226,7 +228,6 @@ public class Child_MenuDrawerActivity extends AppCompatActivity {
                                     public void onCancelled(DatabaseError databaseError) {
                                         Log.d("error","error");
                                         Toast.makeText(Child_MenuDrawerActivity.this, "An error occurred.",Toast.LENGTH_SHORT).show();
-
                                     }
                                 });
                             }

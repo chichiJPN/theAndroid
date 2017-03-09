@@ -53,6 +53,7 @@ import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polygon;
 import com.google.android.gms.maps.model.PolygonOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
@@ -92,11 +93,9 @@ public class Guardian_ChildProfileOverviewActivity extends FragmentActivity impl
 
     // below variables are for calculating the geofences
     private Marker childMarker;  // marker points where child's last location is
-    private List<Db_fence> existingFences;
-    private List<Marker> existingMarkers;
-    private List<Circle> existingCircles;
+    private List<MapFence> mapFences;
 
-    // below variables are for calculating
+    // below variables are for history Location
     private List<Marker> historyLocationMarkers;
     private List<Polyline> historyLocationLines;
     private List<Long> historyLocationTimes; // value is in milliseconds
@@ -465,9 +464,12 @@ public class Guardian_ChildProfileOverviewActivity extends FragmentActivity impl
         panel_header = (LinearLayout) findViewById(R.id.panel_header);
 
         // initializes the Lists
+        mapFences = new ArrayList<MapFence>();
+        /*
         existingFences = new ArrayList<Db_fence>();
         existingMarkers = new ArrayList<Marker>();
         existingCircles = new ArrayList<Circle>();
+        */
 
         historyLocationMarkers = new ArrayList<Marker>();
         historyLocationLines = new ArrayList<Polyline>();
@@ -519,48 +521,113 @@ public class Guardian_ChildProfileOverviewActivity extends FragmentActivity impl
         mDatabase.child("users").child(guardianID).child("Fences").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
 
-            public void onDataChange(DataSnapshot Fences) {
+            public void onDataChange(DataSnapshot SnapshotFences) {
 
-                // Loops through all existing markers from map and removes them
-                for(Marker marker : existingMarkers) {
-                    marker.remove();
+                for(MapFence mapfence : mapFences) {
+                    if(mapfence.getDb_fence().getType().equals("Circle")) {
+                        mapfence.getCircle().remove();
+                    } else {
+                        mapfence.getPolygon().remove();
+                    }
+                    mapfence.getMarker().remove();
                 }
 
-                // Loops through all existing markers from map and removes them
-                for(Circle circle : existingCircles) {
-                    circle.remove();
-                }
-
-                existingMarkers.clear();
-                existingCircles.clear();
-                existingFences.clear();
-
+                mapFences.clear();
                 // checks if the guardian created any fences then saves the in variables
-                if(Fences.exists()) {
-                    for(DataSnapshot snapshotFence : Fences.getChildren()) {
-                        Db_fence fence = snapshotFence.getValue(Db_fence.class);
+                if(SnapshotFences.exists()) {
+                    for(DataSnapshot fenceSnapshot : SnapshotFences.getChildren()) {
+                        Db_fence fence = fenceSnapshot.getValue(Db_fence.class);
 
-                        String fenceName = snapshotFence.getKey();
-                        double fenceLatitude = fence.getLatitude();
-                        double fenceLongitude = fence.getLongitude();
+                        String fenceName = fenceSnapshot.getKey();
+                        Log.d("Fence",fenceName);
 
-                        LatLng newLatLng = new LatLng(fenceLatitude, fenceLongitude);
-                        MarkerOptions markerOptions = new MarkerOptions()
-                                .position(newLatLng)
-                                .title(fenceName);
+                        if(fence.getType().equals("Circle")) {
+                            double fenceLatitude = fence.getLatitude();
+                            double fenceLongitude = fence.getLongitude();
 
-                        final Marker marker = mMap.addMarker(markerOptions);
+                            LatLng newLatLng = new LatLng(fenceLatitude, fenceLongitude);
+                            MarkerOptions markerOptions = new MarkerOptions()
+                                    .position(newLatLng)
+                                    .title(fenceName);
 
-                        CircleOptions circleOptions = new CircleOptions()
-                                .center(newLatLng)
-                                .strokeColor(fence.getSafety() == 1 ? Color.GREEN : Color.RED)
-                                .radius(fence.getRadius())
-                                .zIndex(20);
-                        final Circle mapCircle = mMap.addCircle(circleOptions);
+                            final Marker marker = mMap.addMarker(markerOptions);
 
-                        existingMarkers.add(marker);
-                        existingCircles.add(mapCircle);
-                        existingFences.add(fence);
+                            CircleOptions circleOptions = new CircleOptions()
+                                    .center(newLatLng)
+                                    .strokeColor(fence.getSafety() == 1 ? Color.GREEN : Color.RED)
+                                    .radius(fence.getRadius())
+                                    .zIndex(20);
+                            final Circle mapCircle = mMap.addCircle(circleOptions);
+
+                            MapFence mapFence = new MapFence(
+                                    fence,
+                                    marker,
+                                    null,
+                                    mapCircle
+                            );
+                            mapFences.add(mapFence);
+
+                        } else if(fence.getType().equals("Polygon")) {
+                            DataSnapshot latitudeSnapshot = fenceSnapshot.child("points").child("latitude");
+                            DataSnapshot longitudeSnapshot = fenceSnapshot.child("points").child("longitude");
+                            List<Double> listLatitudes = new ArrayList<Double>();
+
+                            List<Double> listLongitudes = new ArrayList<Double>();
+
+
+                            for(DataSnapshot d_latitude : latitudeSnapshot.getChildren()) {
+                                String latitude = d_latitude.getValue().toString();
+                                listLatitudes.add(Double.parseDouble(latitude));
+
+                            }
+                            for(DataSnapshot d_longitude : longitudeSnapshot.getChildren()) {
+                                String longitude = d_longitude.getValue().toString();
+                                Log.d("Fence", longitude);
+                                listLongitudes.add(Double.parseDouble(longitude));
+                            }
+
+                            PolygonOptions polygonoptions = new PolygonOptions();
+
+                            Log.d("Fence","size is "+ listLatitudes.size());
+                            Log.d("Fence",listLatitudes.toString());
+                            Log.d("Fence",listLongitudes.toString());
+
+                            for(int x = 0 ;x < listLatitudes.size() - 1; x++) {
+                                Log.d("Fence",""+x);
+                                LatLng firstPoint = new LatLng(listLatitudes.get(x),listLongitudes.get(x));
+                                LatLng secondPoint = new LatLng(listLatitudes.get(x + 1),listLongitudes.get(x + 1));
+                                polygonoptions.add(firstPoint,secondPoint);
+                            }
+
+                            // set the first and last point
+                            LatLng firstPoint = new LatLng(listLatitudes.get(0),listLongitudes.get(0));
+                            LatLng secondPoint = new LatLng(listLatitudes.get(listLatitudes.size() - 1),listLongitudes.get(listLatitudes.size() - 1));
+                            polygonoptions.add(secondPoint,firstPoint);
+
+
+                            if(fence.getSafety() == 1) {
+                                polygonoptions.strokeColor(Color.GREEN);
+                            } else {
+                                polygonoptions.strokeColor(Color.RED);
+                            }
+
+                            Polygon mapPolygon = mMap.addPolygon(polygonoptions);
+
+                            MarkerOptions markerOptions = new MarkerOptions()
+                                    .position(mapPolygon.getPoints().get(0))
+                                    .title(fenceName);
+
+                            final Marker marker = mMap.addMarker(markerOptions);
+
+                            MapFence mapfence = new MapFence(
+                                    fence,
+                                    marker,
+                                    mapPolygon,
+                                    null
+                            );
+
+                            mapFences.add(mapfence);
+                        }
                     }
                 }
             }

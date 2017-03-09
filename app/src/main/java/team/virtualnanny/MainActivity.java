@@ -33,8 +33,10 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
@@ -57,7 +59,6 @@ public class MainActivity extends AppCompatActivity {
         checkAppPermissions();
 
 
-
 /*
         // this part is for adding and removing values in the database. Please ignoere
         FirebaseDatabase.getInstance().getReference().child("users").addListenerForSingleValueEvent(new ValueEventListener() {
@@ -67,12 +68,12 @@ public class MainActivity extends AppCompatActivity {
 //                fenceProperties.put("SOS", false);
                 for(DataSnapshot userSnapshot: usersSnapshot.getChildren()) {
                     String userKey = userSnapshot.getKey().toString();
+                    Log.d("Main","Setting " + userKey);
                     if(userSnapshot.child("Fences").exists()) {
                         DataSnapshot FencesSnapshot = userSnapshot.child("Fences");
                         for(DataSnapshot fence: FencesSnapshot.getChildren()) {
                             String fenceName = fence.getKey().toString();
-                            FirebaseDatabase.getInstance().getReference().child("users").child(userKey).child(fenceName).removeValue();
-                            FirebaseDatabase.getInstance().getReference().child("users").child(userKey).child("Fences").child(fenceName).child("type").setValue("Circle");
+                            FirebaseDatabase.getInstance().getReference().child("users").child(userKey).child("Fences").child(fenceName).child("points").setValue(list);
                         }
                     }
                 }
@@ -83,14 +84,11 @@ public class MainActivity extends AppCompatActivity {
         });
 */
 
-
-
         mAuthListener = new FirebaseAuth.AuthStateListener() {
             @Override
             public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
                 final FirebaseUser user = firebaseAuth.getCurrentUser();
                 if (user != null) {
-
                     progress.show();
 
                     FirebaseDatabase.getInstance().getReference().child("users").child(user.getUid())

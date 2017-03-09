@@ -6,6 +6,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
+import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -24,6 +25,7 @@ import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.games.snapshot.Snapshot;
 import com.google.android.gms.vision.text.Text;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -116,7 +118,7 @@ public class Guardian_MenuDrawerActivity extends AppCompatActivity {
                                     int position, long id) {
                 // TODO Auto-generated method stub
 
-                String Slecteditem = itemname[+position];
+                final String Slecteditem = itemname[+position];
                 /*
                 *                 "Notifications",
                 "Messages",
@@ -164,8 +166,17 @@ public class Guardian_MenuDrawerActivity extends AppCompatActivity {
                                 mDatabase.child("users").orderByChild("email").equalTo(childEmail).addListenerForSingleValueEvent(new ValueEventListener() {
                                     @Override
                                     public void onDataChange(DataSnapshot childSnapshot) {
+
                                         if(childSnapshot.exists()) {
+
+                                            for(DataSnapshot snapshot: childSnapshot.getChildren()) {
+                                                childSnapshot= snapshot;
+                                            }
+
+                                            Log.d("user",childSnapshot.toString());
                                             Db_user user = childSnapshot.getValue(Db_user.class);
+                                            final String childUID = childSnapshot.getKey();
+
                                             // check if user is a child
                                             if(user.getRole().equals("Child")) {
 
@@ -177,7 +188,7 @@ public class Guardian_MenuDrawerActivity extends AppCompatActivity {
 
                                                             String childKey = users.child(currentUserID).child("children").push().getKey(); // create a key
                                                             Map<String, Object> childUpdate = new HashMap<String, Object>(); //
-                                                            childUpdate.put(childKey, childEmail);
+                                                            childUpdate.put(childKey, childUID);
 
                                                             users.child(currentUserID).child("children").updateChildren(childUpdate);
                                                             Toast.makeText(Guardian_MenuDrawerActivity.this, "Child has been added.",Toast.LENGTH_SHORT).show();

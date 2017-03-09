@@ -12,6 +12,7 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
@@ -60,6 +61,7 @@ public class Child_Service extends Service {
     int LOCATION_UPDATE_INTERVAL = 5 * 1000;  // 5 is the number of seconds
     int LOCATION_HISTORY_UPDATE_INTERVAL = 60 * 1000; // 60 is the number of seconds = 1 minutes
     int historyCounter = 0;
+
     boolean remoteTracking = true;
     boolean remoteLock = false;
 
@@ -94,12 +96,17 @@ public class Child_Service extends Service {
         userRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
+
                 Db_user currentUser = dataSnapshot.getValue(Db_user.class);
 
                 numSteps = currentUser.getNumSteps();
                 numStepsToday = currentUser.getNumStepsToday();
                 remoteLock = currentUser.getRemoteLock();
                 remoteTracking = currentUser.getRemoteTracking();
+
+                if(dataSnapshot.child("alarms").exists()) {
+                    setAlarms(dataSnapshot.child("alarms"));
+                }
 
                 createNotificationForStartForeground();
                 myLocationListener = new MyLocationListener();
@@ -143,6 +150,22 @@ public class Child_Service extends Service {
             public void onCancelled(DatabaseError databaseError) {}
         });
 
+
+    }
+
+    private void setAlarms(DataSnapshot alarms) {
+        Calendar calendar = Calendar.getInstance();
+        int day = calendar.get(Calendar.DAY_OF_WEEK);
+
+        for(DataSnapshot fencealarm : alarms.getChildren()) {
+//            String alarmName = fencealarm.getKey().toString();
+            for(DataSnapshot alarm : fencealarm.getChildren()) {
+
+                Db_alarm db_alarm = alarm.getValue(Db_alarm.class);
+                if(db_alarm.getEnable() == true) {
+                }
+            }
+        }
 
     }
 
@@ -210,6 +233,7 @@ public class Child_Service extends Service {
         numStepObject.put("lastLongitude", lastLongitude);
         userRef.updateChildren(numStepObject); // updates numSteps, latitude and longitude of child
 
+        // update location history of child every x seconds
         if(historyCounter > LOCATION_HISTORY_UPDATE_INTERVAL) {
             Map<String, Object> locationHistory = new HashMap<String, Object>(); //
             if(remoteTracking == true ) {
@@ -224,11 +248,9 @@ public class Child_Service extends Service {
             historyCounter = 0;
         }
 
-
         this.lastLocation = location;
         Toast.makeText(Child_Service.this, "Number of steps:"+numSteps, Toast.LENGTH_LONG).show();
         busyFlag = false;
-
     }
 
 

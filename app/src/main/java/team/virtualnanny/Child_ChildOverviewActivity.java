@@ -31,6 +31,8 @@ import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polygon;
+import com.google.android.gms.maps.model.PolygonOptions;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -57,35 +59,29 @@ public class Child_ChildOverviewActivity extends FragmentActivity implements OnM
     private String mParentID = null;
     private String mParentNumber = null;
 
-    private List<Db_fence> existingFences;
-    private List<Marker> existingMarkers;
-    private List<Circle> existingCircles;
-    private boolean runflag = true;
-
+    private List<MapFence> mapFences;
 
     // UI components
     private TextView tv_name;
     private TextView tv_address;
     private TextView textview_steps;
+    private LinearLayout ll;
+    private ImageButton btn_task;
+    private ImageButton btn_phone;
+    private ImageButton btn_message;
+    private ImageButton btn_fence;
+    private ImageButton btn_alarm;
+    private ImageButton btn_dashboard;
+    private RelativeLayout layout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.child_overview);
-        LinearLayout ll = (LinearLayout) findViewById(R.id.panel_header);
-
-        existingFences = new ArrayList<Db_fence>();
-        existingMarkers = new ArrayList<Marker>();
-        existingCircles = new ArrayList<Circle>();
 
 
-        progress = new ProgressDialog(Child_ChildOverviewActivity.this);
-        progress.setTitle("Loading");
-        progress.setMessage("Wait while loading...");
-        progress.setCancelable(false); // disable dismiss by tapping outside of the dialog
+        initComponents();
 
-        mDatabase = FirebaseDatabase.getInstance().getReference();
-        mAuth = FirebaseAuth.getInstance();
         mAuthListener = new FirebaseAuth.AuthStateListener() {
             @Override
             public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
@@ -99,33 +95,34 @@ public class Child_ChildOverviewActivity extends FragmentActivity implements OnM
             }
         };
 
+
         requestPermissionAccessLocation();
         Intent intent = new Intent(getApplicationContext(), Child_Service.class);
         startService(intent);
 
+        setClickListeners();
 
-        tv_name = (TextView) findViewById(R.id.textview_name);
-        tv_address = (TextView) findViewById(R.id.textview_address);
-        textview_steps = (TextView) findViewById(R.id.textview_steps);
-        ImageButton btn_phone = (ImageButton) findViewById(R.id.btn_phone);
-        ImageButton btn_message = (ImageButton) findViewById(R.id.btn_message);
-        ImageButton btn_fence = (ImageButton) findViewById(R.id.btn_fence);
-        ImageButton btn_alarm = (ImageButton) findViewById(R.id.btn_alarm);
-        ImageButton btn_dashboard = (ImageButton) findViewById(R.id.btn_dashboard);
-        ImageButton btn_task = (ImageButton) findViewById(R.id.btn_task);
-        RelativeLayout layout = (RelativeLayout) findViewById(R.id.RelativeLayout1);
+
+        // Obtain the SupportMapFragment and get notified when the map is ready to be used.
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+                .findFragmentById(R.id.map);
+        mapFragment.getMapAsync(this);
+
+    }
+
+    private void setClickListeners() {
 
         btn_phone.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-            if(mParentID == null) {
-                Toast.makeText(Child_ChildOverviewActivity.this, "Please register a parent and have the parent register you",Toast.LENGTH_SHORT).show();
-                return;
-            }
+                if(mParentID == null) {
+                    Toast.makeText(Child_ChildOverviewActivity.this, "Please register a parent and have the parent register you",Toast.LENGTH_SHORT).show();
+                    return;
+                }
 
-            Uri number = Uri.parse("tel:" + mParentNumber);
-            Intent callIntent = new Intent(Intent.ACTION_DIAL, number);
-            startActivity(callIntent);
+                Uri number = Uri.parse("tel:" + mParentNumber);
+                Intent callIntent = new Intent(Intent.ACTION_DIAL, number);
+                startActivity(callIntent);
             }
         });
 
@@ -148,53 +145,53 @@ public class Child_ChildOverviewActivity extends FragmentActivity implements OnM
         btn_fence.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-            if(mParentID == null) {
-                Toast.makeText(Child_ChildOverviewActivity.this, "Please register a parent and have the parent register you",Toast.LENGTH_SHORT).show();
-                return;
-            }
+                if(mParentID == null) {
+                    Toast.makeText(Child_ChildOverviewActivity.this, "Please register a parent and have the parent register you",Toast.LENGTH_SHORT).show();
+                    return;
+                }
 
-            final Intent i = new Intent(Child_ChildOverviewActivity.this, Child_ViewFenceActivity.class);
-            i.putExtra("parentid",mParentID);
-            startActivity(i);
+                final Intent i = new Intent(Child_ChildOverviewActivity.this, Child_ViewFenceActivity.class);
+                i.putExtra("parentid",mParentID);
+                startActivity(i);
             }
         });
 
         btn_alarm.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-            if(mParentID == null) {
-                Toast.makeText(Child_ChildOverviewActivity.this, "Please register a parent and have the parent register you",Toast.LENGTH_SHORT).show();
-                return;
-            }
-            final Intent i = new Intent(Child_ChildOverviewActivity.this, Child_ViewAlarmActivity.class);
-            i.putExtra("parentid",mParentID);
-            startActivity(i);
+                if(mParentID == null) {
+                    Toast.makeText(Child_ChildOverviewActivity.this, "Please register a parent and have the parent register you",Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                final Intent i = new Intent(Child_ChildOverviewActivity.this, Child_ViewAlarmActivity.class);
+                i.putExtra("parentid",mParentID);
+                startActivity(i);
             }
         });
 
         btn_task.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-            if(mParentID == null) {
-                Toast.makeText(Child_ChildOverviewActivity.this, "Please register a parent and have the parent register you",Toast.LENGTH_SHORT).show();
-                return;
-            }
-            final Intent i = new Intent(Child_ChildOverviewActivity.this, Child_ViewTasksActivity.class);
-            i.putExtra("parentid",mParentID);
-            startActivity(i);
+                if(mParentID == null) {
+                    Toast.makeText(Child_ChildOverviewActivity.this, "Please register a parent and have the parent register you",Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                final Intent i = new Intent(Child_ChildOverviewActivity.this, Child_ViewTasksActivity.class);
+                i.putExtra("parentid",mParentID);
+                startActivity(i);
             }
         });
 
         btn_dashboard.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-            if(mParentID == null) {
-                Toast.makeText(Child_ChildOverviewActivity.this, "Please register a parent and have the parent register you",Toast.LENGTH_SHORT).show();
-                return;
-            }
-            final Intent i = new Intent(Child_ChildOverviewActivity.this, Child_DashboardActivity.class);
-            i.putExtra("parentid",mParentID);
-            startActivity(i);
+                if(mParentID == null) {
+                    Toast.makeText(Child_ChildOverviewActivity.this, "Please register a parent and have the parent register you",Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                final Intent i = new Intent(Child_ChildOverviewActivity.this, Child_DashboardActivity.class);
+                i.putExtra("parentid",mParentID);
+                startActivity(i);
             }
         });
 
@@ -215,11 +212,29 @@ public class Child_ChildOverviewActivity extends FragmentActivity implements OnM
             public void onSwipeLeft() {}
             public void onSwipeBottom() {}
         });
+    }
 
-        // Obtain the SupportMapFragment and get notified when the map is ready to be used.
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
-                .findFragmentById(R.id.map);
-        mapFragment.getMapAsync(this);
+    private void initComponents() {
+        mapFences = new ArrayList<MapFence>();
+        progress = new ProgressDialog(Child_ChildOverviewActivity.this);
+        progress.setTitle("Loading");
+        progress.setMessage("Wait while loading...");
+        progress.setCancelable(false); // disable dismiss by tapping outside of the dialog
+
+        mDatabase = FirebaseDatabase.getInstance().getReference();
+        mAuth = FirebaseAuth.getInstance();
+
+        ll = (LinearLayout) findViewById(R.id.panel_header);
+        tv_name = (TextView) findViewById(R.id.textview_name);
+        tv_address = (TextView) findViewById(R.id.textview_address);
+        textview_steps = (TextView) findViewById(R.id.textview_steps);
+        btn_phone = (ImageButton) findViewById(R.id.btn_phone);
+        btn_message = (ImageButton) findViewById(R.id.btn_message);
+        btn_fence = (ImageButton) findViewById(R.id.btn_fence);
+        btn_alarm = (ImageButton) findViewById(R.id.btn_alarm);
+        btn_dashboard = (ImageButton) findViewById(R.id.btn_dashboard);
+        btn_task = (ImageButton) findViewById(R.id.btn_task);
+        layout = (RelativeLayout) findViewById(R.id.RelativeLayout1);
 
     }
 
@@ -245,6 +260,9 @@ public class Child_ChildOverviewActivity extends FragmentActivity implements OnM
                         @Override
                         public void onDataChange(DataSnapshot parentSnapshot) {
 
+                            boolean isCurrentParentMyParent = false;
+
+                            // Check first if the parent is truly the child's parent
                             // check if the parent has children
                             if(parentSnapshot.child("children").exists()) {
                                 // loop through all the parent's children
@@ -252,41 +270,20 @@ public class Child_ChildOverviewActivity extends FragmentActivity implements OnM
 
                                     // checks if the parent has a child with the current user's id
                                     if(child.getValue().toString().equals(currentUserID)) {
-
-                                        mParentID = parentID; // assign the parent as the child's parent
-                                        mParentNumber = parentSnapshot.child("phone").getValue().toString();
-
-                                        // checks if the parent has set any fences
-                                        if(parentSnapshot.child("Fences").exists()) {
-                                            DataSnapshot Fences = parentSnapshot.child("Fences");
-                                            for(DataSnapshot snapshotFence : Fences.getChildren()) {
-                                                Db_fence fence = snapshotFence.getValue(Db_fence.class);
-
-                                                String fenceName = snapshotFence.getKey();
-                                                double fenceLatitude = fence.getLatitude();
-                                                double fenceLongitude = fence.getLongitude();
-
-                                                LatLng newLatLng = new LatLng(fenceLatitude, fenceLongitude);
-                                                MarkerOptions markerOptions = new MarkerOptions()
-                                                        .position(newLatLng)
-                                                        .title(fenceName);
-
-                                                final Marker marker = mMap.addMarker(markerOptions);
-
-                                                CircleOptions circleOptions = new CircleOptions()
-                                                        .center(newLatLng)
-                                                        .strokeColor(fence.getSafety() == 1 ? Color.GREEN : Color.RED)
-                                                        .radius(fence.getRadius())
-                                                        .zIndex(20);
-                                                final Circle mapCircle = mMap.addCircle(circleOptions);
-
-                                                existingMarkers.add(marker);
-                                                existingCircles.add(mapCircle);
-                                                existingFences.add(fence);
-                                            }
-                                        }
+                                        isCurrentParentMyParent = true;
                                         break;
                                     }
+                                }
+                            }
+
+                            if(isCurrentParentMyParent == true) {
+                                mParentID = parentID; // assign the parent as the child's parent
+                                mParentNumber = parentSnapshot.child("phone").getValue().toString();
+
+                                // checks if the parent has set any fences
+                                if (parentSnapshot.child("Fences").exists()) {
+                                    DataSnapshot snapshotFences = parentSnapshot.child("Fences");
+                                    refreshFences(snapshotFences);
                                 }
                             }
                         }
@@ -303,6 +300,7 @@ public class Child_ChildOverviewActivity extends FragmentActivity implements OnM
             public void onCancelled(DatabaseError databaseError) {}
         });
 
+        // tracks the location of the user on the map via db
         users.child(currentUserID).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot snapshotCurrentUser) {
@@ -314,6 +312,112 @@ public class Child_ChildOverviewActivity extends FragmentActivity implements OnM
             @Override
             public void onCancelled(DatabaseError databaseError) {}
         });
+    }
+
+    private void refreshFences(DataSnapshot SnapshotFences) {
+        for(MapFence mapfence : mapFences) {
+            if(mapfence.getDb_fence().getType().equals("Circle")) {
+                mapfence.getCircle().remove();
+            } else {
+                mapfence.getPolygon().remove();
+            }
+            mapfence.getMarker().remove();
+        }
+
+        mapFences.clear();
+        // checks if the guardian created any fences then saves the in variables
+        if(SnapshotFences.exists()) {
+            for(DataSnapshot fenceSnapshot : SnapshotFences.getChildren()) {
+                Db_fence fence = fenceSnapshot.getValue(Db_fence.class);
+
+                String fenceName = fenceSnapshot.getKey();
+                Log.d("Fence",fenceName);
+
+                if(fence.getType().equals("Circle")) {
+                    double fenceLatitude = fence.getLatitude();
+                    double fenceLongitude = fence.getLongitude();
+
+                    LatLng newLatLng = new LatLng(fenceLatitude, fenceLongitude);
+                    MarkerOptions markerOptions = new MarkerOptions()
+                            .position(newLatLng)
+                            .title(fenceName);
+
+                    final Marker marker = mMap.addMarker(markerOptions);
+
+                    CircleOptions circleOptions = new CircleOptions()
+                            .center(newLatLng)
+                            .strokeColor(fence.getSafety() == 1 ? Color.GREEN : Color.RED)
+                            .radius(fence.getRadius())
+                            .zIndex(20);
+                    final Circle mapCircle = mMap.addCircle(circleOptions);
+
+                    MapFence mapFence = new MapFence(
+                            fence,
+                            marker,
+                            null,
+                            mapCircle
+                    );
+                    mapFences.add(mapFence);
+
+                } else if(fence.getType().equals("Polygon")) {
+                    DataSnapshot latitudeSnapshot = fenceSnapshot.child("points").child("latitude");
+                    DataSnapshot longitudeSnapshot = fenceSnapshot.child("points").child("longitude");
+                    List<Double> listLatitudes = new ArrayList<Double>();
+
+                    List<Double> listLongitudes = new ArrayList<Double>();
+
+
+                    for(DataSnapshot d_latitude : latitudeSnapshot.getChildren()) {
+                        String latitude = d_latitude.getValue().toString();
+                        listLatitudes.add(Double.parseDouble(latitude));
+
+                    }
+                    for(DataSnapshot d_longitude : longitudeSnapshot.getChildren()) {
+                        String longitude = d_longitude.getValue().toString();
+                        Log.d("Fence", longitude);
+                        listLongitudes.add(Double.parseDouble(longitude));
+                    }
+
+                    PolygonOptions polygonoptions = new PolygonOptions();
+
+                    for(int x = 0 ;x < listLatitudes.size() - 1; x++) {
+                        Log.d("Fence",""+x);
+                        LatLng firstPoint = new LatLng(listLatitudes.get(x),listLongitudes.get(x));
+                        LatLng secondPoint = new LatLng(listLatitudes.get(x + 1),listLongitudes.get(x + 1));
+                        polygonoptions.add(firstPoint,secondPoint);
+                    }
+
+                    // set the first and last point
+                    LatLng firstPoint = new LatLng(listLatitudes.get(0),listLongitudes.get(0));
+                    LatLng secondPoint = new LatLng(listLatitudes.get(listLatitudes.size() - 1),listLongitudes.get(listLatitudes.size() - 1));
+                    polygonoptions.add(secondPoint,firstPoint);
+
+
+                    if(fence.getSafety() == 1) {
+                        polygonoptions.strokeColor(Color.GREEN);
+                    } else {
+                        polygonoptions.strokeColor(Color.RED);
+                    }
+
+                    Polygon mapPolygon = mMap.addPolygon(polygonoptions);
+
+                    MarkerOptions markerOptions = new MarkerOptions()
+                            .position(mapPolygon.getPoints().get(0))
+                            .title(fenceName);
+
+                    final Marker marker = mMap.addMarker(markerOptions);
+
+                    MapFence mapfence = new MapFence(
+                            fence,
+                            marker,
+                            mapPolygon,
+                            null
+                    );
+
+                    mapFences.add(mapfence);
+                }
+            }
+        }
     }
 
     /**
@@ -346,8 +450,6 @@ public class Child_ChildOverviewActivity extends FragmentActivity implements OnM
     @Override
     public void onStart() {
         super.onStart();
-        Log.d("On start","start");
-        runflag = true;
         mAuth.addAuthStateListener(mAuthListener);
     }
 
@@ -357,8 +459,6 @@ public class Child_ChildOverviewActivity extends FragmentActivity implements OnM
         if (mAuthListener != null) {
             mAuth.removeAuthStateListener(mAuthListener);
         }
-        runflag = false;
-
 	}
 
 
@@ -369,8 +469,6 @@ public class Child_ChildOverviewActivity extends FragmentActivity implements OnM
                 Latitude,
                 Longitude));
         mMap.moveCamera(center);
-//        CameraUpdate zoom=CameraUpdateFactory.zoomTo(20);
-//        mMap.animateCamera(zoom);
     }
 
 }
