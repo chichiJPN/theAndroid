@@ -588,10 +588,6 @@ public class Guardian_ChildProfileOverviewActivity extends FragmentActivity impl
 
                             PolygonOptions polygonoptions = new PolygonOptions();
 
-                            Log.d("Fence","size is "+ listLatitudes.size());
-                            Log.d("Fence",listLatitudes.toString());
-                            Log.d("Fence",listLongitudes.toString());
-
                             for(int x = 0 ;x < listLatitudes.size() - 1; x++) {
                                 Log.d("Fence",""+x);
                                 LatLng firstPoint = new LatLng(listLatitudes.get(x),listLongitudes.get(x));

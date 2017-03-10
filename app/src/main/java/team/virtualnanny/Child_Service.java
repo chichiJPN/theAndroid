@@ -1,17 +1,23 @@
 package team.virtualnanny;
 
 import android.Manifest;
+import android.app.AlarmManager;
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.os.PowerManager;
+import android.os.SystemClock;
 import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -38,19 +44,20 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-
 
 public class Child_Service extends Service {
 
     public static double StepSize = 0.6;
     private MyLocationListener myLocationListener;
     private LocationManager myManager;
-    private Location lastLocation;
+    public Location lastLocation;
     private FirebaseAuth mAuth;
     private FirebaseAuth.AuthStateListener mAuthListener;
     private DatabaseReference userRef;
@@ -64,6 +71,11 @@ public class Child_Service extends Service {
 
     boolean remoteTracking = true;
     boolean remoteLock = false;
+
+    // for the alarms
+    List<AlarmManager> listAlarmManagers;
+    List<PendingIntent> listAlarmPendingIntents;
+    int alarmIntentID = 0;
 
     @Nullable
     @Override
@@ -82,17 +94,18 @@ public class Child_Service extends Service {
             public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
                 FirebaseUser user = firebaseAuth.getCurrentUser();
                 if (user == null) {
-                    Toast.makeText(getApplicationContext(), "Child Service is stopped", Toast.LENGTH_SHORT).show();
+                    //Toast.makeText(getApplicationContext(), "Child Service is stopped", Toast.LENGTH_SHORT).show();
                     Child_Service.this.stopSelf();
                 }
             }
         };
         mAuth.addAuthStateListener(mAuthListener);
-		
+
+        listAlarmManagers = new ArrayList<AlarmManager>();
+        listAlarmPendingIntents = new ArrayList<PendingIntent>();
+
         currentUserID = FirebaseAuth.getInstance().getCurrentUser().getUid();
-
         userRef = FirebaseDatabase.getInstance().getReference().child("users").child(currentUserID);
-
         userRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -103,10 +116,6 @@ public class Child_Service extends Service {
                 numStepsToday = currentUser.getNumStepsToday();
                 remoteLock = currentUser.getRemoteLock();
                 remoteTracking = currentUser.getRemoteTracking();
-
-                if(dataSnapshot.child("alarms").exists()) {
-                    setAlarms(dataSnapshot.child("alarms"));
-                }
 
                 createNotificationForStartForeground();
                 myLocationListener = new MyLocationListener();
@@ -129,7 +138,7 @@ public class Child_Service extends Service {
             public void onDataChange(DataSnapshot childLockSnapshot) {
                 boolean childLock = Boolean.parseBoolean(childLockSnapshot.getValue().toString());
 
-                Toast.makeText(getApplicationContext(), "Child lock is now " + childLock , Toast.LENGTH_SHORT).show();
+//                Toast.makeText(getApplicationContext(), "Child lock is now " + childLock , Toast.LENGTH_SHORT).show();
 
             }
 
@@ -137,38 +146,124 @@ public class Child_Service extends Service {
             public void onCancelled(DatabaseError databaseError) {}
         });
 
-        // add a listener to child's "remoteTracking"
-        userRef.child("remoteTracking").addValueEventListener(new ValueEventListener() {
+        // add a listener to child's "alarms"
+        userRef.child("alarms").addValueEventListener(new ValueEventListener() {
             @Override
-            public void onDataChange(DataSnapshot childTrackingSnapshot) {
-                boolean remoteTracking = Boolean.parseBoolean(childTrackingSnapshot.getValue().toString());
-
-                Toast.makeText(getApplicationContext(), "Remote Tracking is now " + remoteTracking, Toast.LENGTH_SHORT).show();
+            public void onDataChange(DataSnapshot alarmSnapshots) {
+                  setAlarms(alarmSnapshots);
+//                Toast.makeText(getApplicationContext(), "Remote Tracking is now " + remoteTracking, Toast.LENGTH_SHORT).show();
             }
 
             @Override
             public void onCancelled(DatabaseError databaseError) {}
         });
-
-
     }
 
-    private void setAlarms(DataSnapshot alarms) {
-        Calendar calendar = Calendar.getInstance();
-        int day = calendar.get(Calendar.DAY_OF_WEEK);
+    private void setAlarms(DataSnapshot alarmSnapshots) {
 
-        for(DataSnapshot fencealarm : alarms.getChildren()) {
-//            String alarmName = fencealarm.getKey().toString();
+        // cancel all previously set alarms
+        for(int x = 0 ;x < listAlarmManagers.size() - 1; x++) {
+            AlarmManager alarmManager = listAlarmManagers.get(x);
+            PendingIntent pendingIntent = listAlarmPendingIntents.get(x);
+
+            alarmManager.cancel(pendingIntent);
+        }
+        listAlarmManagers.clear();
+        listAlarmPendingIntents.clear();
+
+        // set new alarms with the current snapshot of alarms
+        for(DataSnapshot fencealarm : alarmSnapshots.getChildren()) {
+
+            String alarmName = fencealarm.getKey().toString();
+
             for(DataSnapshot alarm : fencealarm.getChildren()) {
 
+                String alarmType = alarm.getKey().toString();
                 Db_alarm db_alarm = alarm.getValue(Db_alarm.class);
-                if(db_alarm.getEnable() == true) {
+
+                // check if the alarm is enabled and alarm is scheduled for today
+                if(db_alarm.getEnable() == true && IsAlarmEnabledForToday(db_alarm)) {
+
+                    // set the 10-before minute notification
+                    Calendar alarmTime = Calendar.getInstance();
+                    alarmTime.setTimeInMillis(System.currentTimeMillis());
+                    alarmTime.set(Calendar.HOUR_OF_DAY, db_alarm.getHour());
+                    alarmTime.set(Calendar.MINUTE, db_alarm.getMinute() > 10 ? db_alarm.getMinute() - 10 : db_alarm.getMinute());
+                    alarmTime.set(Calendar.SECOND,0);
+
+                    AlarmManager manager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+                    Intent alarmIntent = new Intent(Child_Service.this, AlarmReceiver.class);
+                    String alarmMessage= "";
+                    Log.d("alarm",alarmTime.toString());
+                    if(alarmType.equals("Entering")) {
+                        alarmMessage = "Please enter " + alarmName + " in 10 minutes ";
+                    } else {
+                        alarmMessage = "Please leave " + alarmName + " in 10 minutes ";
+                    }
+
+                    alarmIntent.putExtra("message",alarmMessage);
+                    alarmIntent.putExtra("alarmName",alarmName);
+
+                    PendingIntent pendingIntent = PendingIntent.getBroadcast(getApplicationContext(), alarmIntentID, alarmIntent, 0);
+
+                    // sets the alarm
+                    manager.set(AlarmManager.RTC_WAKEUP,alarmTime.getTimeInMillis(),pendingIntent);
+
+                    alarmIntentID++;
+                    listAlarmManagers.add(manager);
+                    listAlarmPendingIntents.add(pendingIntent);
+
+///////////////////// set the on minute notification ///////////////////////////
+                    Calendar alarmTime2 = Calendar.getInstance();
+                    alarmTime2.setTimeInMillis(System.currentTimeMillis());
+                    alarmTime2.set(Calendar.HOUR_OF_DAY, db_alarm.getHour());
+                    alarmTime2.set(Calendar.MINUTE, db_alarm.getMinute() > 10 ? db_alarm.getMinute() - 10 : db_alarm.getMinute());
+                    alarmTime2.set(Calendar.SECOND,0);
+
+                    AlarmManager manager2 = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+                    Intent alarmIntent2 = new Intent(Child_Service.this, AlarmReceiver.class);
+                    String alarmMessage2 = "";
+                    Log.d("alarm",alarmTime.toString());
+                    if(alarmType.equals("Entering")) {
+                        alarmMessage2 = "Please enter " + alarmName + " now";
+                    } else {
+                        alarmMessage2 = "Please leave " + alarmName + " now";
+                    }
+
+                    alarmIntent2.putExtra("message",alarmMessage2);
+                    alarmIntent2.putExtra("alarmName",alarmName);
+
+                    PendingIntent pendingIntent2 = PendingIntent.getBroadcast(getApplicationContext(), alarmIntentID, alarmIntent2, 0);
+
+                    // sets the alarm
+                    manager2.set(AlarmManager.RTC_WAKEUP,alarmTime.getTimeInMillis(),pendingIntent2);
+
+                    alarmIntentID++;
+                    listAlarmManagers.add(manager2);
+                    listAlarmPendingIntents.add(pendingIntent2);
+
+
+
                 }
             }
         }
-
     }
 
+    private boolean IsAlarmEnabledForToday(Db_alarm db_alarm) {
+        Calendar calendar = Calendar.getInstance();
+        int day = calendar.get(Calendar.DAY_OF_WEEK);
+        switch(day) {
+            case Calendar.SUNDAY: return db_alarm.getSunday();
+            case Calendar.MONDAY: return db_alarm.getMonday();
+            case Calendar.TUESDAY: return db_alarm.getTuesday();
+            case Calendar.WEDNESDAY: return db_alarm.getWednesday();
+            case Calendar.THURSDAY: return db_alarm.getThursday();
+            case Calendar.FRIDAY: return db_alarm.getFriday();
+            case Calendar.SATURDAY: return db_alarm.getSaturday();
+        }
+
+        return false;
+    }
 
     @Override
     public void onDestroy() {
@@ -177,7 +272,13 @@ public class Child_Service extends Service {
         if (myManager != null && myLocationListener != null) {
             myManager.removeUpdates(myLocationListener);
         }
-		
+
+        for(int x = 0 ;x < listAlarmManagers.size() - 1; x++) {
+            AlarmManager alarmManager = listAlarmManagers.get(x);
+            PendingIntent pendingIntent = listAlarmPendingIntents.get(x);
+            alarmManager.cancel(pendingIntent);
+        }
+
         if (mAuthListener != null) {
             mAuth.removeAuthStateListener(mAuthListener);
         }
@@ -236,10 +337,8 @@ public class Child_Service extends Service {
         // update location history of child every x seconds
         if(historyCounter > LOCATION_HISTORY_UPDATE_INTERVAL) {
             Map<String, Object> locationHistory = new HashMap<String, Object>(); //
-            if(remoteTracking == true ) {
-                locationHistory.put("Latitude", lastLatitude);
-                locationHistory.put("Longitude", lastLongitude);
-            }
+            locationHistory.put("Latitude", lastLatitude);
+            locationHistory.put("Longitude", lastLongitude);
             String timestamp = String.valueOf(System.currentTimeMillis());
 
             userRef.child("locationHistory").child(timestamp).updateChildren(locationHistory);
@@ -253,7 +352,6 @@ public class Child_Service extends Service {
         busyFlag = false;
     }
 
-
     class MyLocationListener implements LocationListener {
         @Override
         public void onLocationChanged(Location location) {
@@ -264,6 +362,12 @@ public class Child_Service extends Service {
 
             historyCounter += LOCATION_UPDATE_INTERVAL;
             //Toast.makeText(Child_Service.this, "Latitude:"+location.getLatitude()+"Longitude:"+location.getLongitude(), Toast.LENGTH_LONG).show();
+            // location.getspeed() = 3 m/s
+            // 3 m /s * 60 sec * 60 min / 1000 kilometers
+            //  180 m/min * 60 min / 1000 kilometers
+            // 6480m/h / 1000km
+            // 6.48 km / h
+
             if (location.getSpeed() * 60 * 60 / 1000 < 10 && location.getSpeed() * 60 * 60 / 1000 > 2 && busyFlag == false) {
 //            if (busyFlag == false) {
                 setLastLocation(location);
@@ -279,4 +383,7 @@ public class Child_Service extends Service {
         @Override
         public void onProviderDisabled(String s) {}
     }
+
+    // this is asynctask
+
 }

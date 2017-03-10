@@ -15,7 +15,7 @@ public class Db_user {
     private int numStepsToday;
     private String lastLogin;
     private boolean remoteTracking;
-    private boolean SOS;
+    private boolean sos;
 
     public Db_user() {}
 
@@ -33,7 +33,7 @@ public class Db_user {
                    int numStepsToday,
                    String lastLogin,
                    boolean remoteTracking,
-                   boolean SOS
+                   boolean sos
 
                    ) {
         this.firstName = firstName;
@@ -50,7 +50,7 @@ public class Db_user {
         this.numStepsToday = numStepsToday;
         this.lastLogin = lastLogin;
         this.remoteTracking = remoteTracking;
-        this.SOS = SOS;
+        this.sos = sos;
     }
     public String getFirstName() {
         return firstName;
@@ -80,13 +80,7 @@ public class Db_user {
         return lastLogin;
     }
     public boolean getRemoteLock() {return remoteLock; }
-    public String getEmail() {
-        return email;
-    }
-    public boolean getRemoteTracking() {
-        return remoteTracking;
-    }
-    public boolean getSOS() {
-        return SOS;
-    }
+    public String getEmail() { return email; }
+    public boolean getRemoteTracking() { return remoteTracking; }
+    public boolean getsos() { return sos; }
 }

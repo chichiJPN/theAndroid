@@ -45,6 +45,8 @@ public class Child_MenuDrawerActivity extends AppCompatActivity {
     private String parentNumber = null;
     private String currentUserID;
 
+    TextView TextView_name;
+    TextView TextView_Address;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -72,6 +74,8 @@ public class Child_MenuDrawerActivity extends AppCompatActivity {
         progress.setMessage("Wait while loading...");
         progress.setCancelable(false); // disable dismiss by tapping outside of the dialog
 
+        TextView_name = (TextView) findViewById(R.id.TextView_name);
+        TextView_Address = (TextView) findViewById(R.id.TextView_Address);
 
         mDatabase = FirebaseDatabase.getInstance().getReference();
         mAuth = FirebaseAuth.getInstance();
@@ -106,7 +110,6 @@ public class Child_MenuDrawerActivity extends AppCompatActivity {
                 "Notifications",
                 "Send SOS",
                 "Add Parent Account",
-                "My ID",
                 "Logout",
                 "About Us"
         };
@@ -114,7 +117,6 @@ public class Child_MenuDrawerActivity extends AppCompatActivity {
         Integer[] imgid={
                 R.drawable.notifications,
                 R.drawable.message,
-                R.drawable.add_user,
                 R.drawable.add_user,
                 R.drawable.logout,
                 R.drawable.about_us,
@@ -152,7 +154,7 @@ public class Child_MenuDrawerActivity extends AppCompatActivity {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
 
-                                FirebaseDatabase.getInstance().getReference().child("users").child(parentID).child("SOS").setValue(true);
+                                FirebaseDatabase.getInstance().getReference().child("users").child(parentID).child("sos").setValue(true);
                                 Log.d("ChildMenu", parentNumber);
                                 SmsManager smsManager = SmsManager.getDefault(); // uses the default sim in your phone
                                smsManager.sendTextMessage(parentNumber,null,"Help! I am in trouble!",null,null);
@@ -311,6 +313,19 @@ public class Child_MenuDrawerActivity extends AppCompatActivity {
     public void onStart() {
         super.onStart();
         mAuth.addAuthStateListener(mAuthListener);
+        mDatabase.child("users").child(currentUserID).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot currentUserSnapshot) {
+                Db_user user  = currentUserSnapshot.getValue(Db_user.class);
+                TextView_name.setText(user.getFirstName() + " " + user.getLastName());
+                TextView_Address.setText(user.getEmail());
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
     }
 
     @Override

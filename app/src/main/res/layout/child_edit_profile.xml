@@ -40,9 +40,9 @@
         android:layout_height="wrap_content"
         android:inputType="textEmailAddress"
         android:ems="10"
-        android:hint="Email Address"
+        android:hint="Address"
         android:gravity="center_horizontal"
-        android:id="@+id/editText_email"
+        android:id="@+id/editText_address"
         android:textColor="@android:color/white"
         android:theme="@style/EditTextTheme" />
 
@@ -58,18 +58,6 @@
         android:textColor="@android:color/white"
         android:theme="@style/EditTextTheme"
         />
-
-
-    <EditText
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:inputType="date"
-        android:ems="10"
-        android:id="@+id/editText_birthdate"
-        android:hint="Birth Date"
-        android:gravity="center_horizontal"
-        android:textColor="@android:color/white"
-        android:theme="@style/EditTextTheme" />
 
     <Button
         android:text="Save Changes"

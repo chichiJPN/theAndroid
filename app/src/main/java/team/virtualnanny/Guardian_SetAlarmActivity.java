@@ -139,16 +139,21 @@ public class Guardian_SetAlarmActivity extends AppCompatActivity {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if(dataSnapshot.exists()) {
-                    for(DataSnapshot datasnapshot : dataSnapshot.getChildren()) {
-                        Db_fence fence = datasnapshot.getValue(Db_fence.class);
+                    if(dataSnapshot.getChildrenCount() > 0) {
+                        for(DataSnapshot datasnapshot : dataSnapshot.getChildren()) {
+                            Db_fence fence = datasnapshot.getValue(Db_fence.class);
 
-                        // alarms fetched should only be safe
-                        if(fence.getSafety() == 1) {
-                            String fenceName = datasnapshot.getKey();
-                            adapter.add(fenceName);
+                            // alarms fetched should only be safe
+                            if(fence.getSafety() == 1) {
+                                String fenceName = datasnapshot.getKey();
+                                adapter.add(fenceName);
+                            }
                         }
+                        adapter.notifyDataSetChanged(); // updates the spinner dropdown
+                    } else {
+                        Toast.makeText(Guardian_SetAlarmActivity.this, "Please add a fence first.",Toast.LENGTH_SHORT).show();
+                        onBackPressed();
                     }
-                    adapter.notifyDataSetChanged(); // updates the spinner dropdown
                 }
                 progress.dismiss();
             }

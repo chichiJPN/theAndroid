@@ -146,6 +146,7 @@ public class Guardian_Service extends Service {
                         mDatabase.child("users").child(childID).addValueEventListener(new ValueEventListener() {
                             @Override
                             public void onDataChange(DataSnapshot childSnapshot) {
+								Log.d("guardservice","data chaged in child");
 								DataSnapshot parent = childSnapshot.child("Parent");
 								
 								// check first if guardian is the parent of the child
@@ -154,9 +155,11 @@ public class Guardian_Service extends Service {
 									Db_user childUser = childSnapshot.getValue(Db_user.class);
 
                                     // checks if child sent an SOS
-                                    if(childUser.getSOS() == true){
+                                    if(childUser.getsos() == true){
                                         alertSOS(childUser, childID);
-                                    }
+                                    } else {
+										
+									}
 
                                     // check if child is in a danger zone
                                     checkCurrentLocationOfChild(childUser, childID);
@@ -192,7 +195,7 @@ public class Guardian_Service extends Service {
             public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
                 FirebaseUser user = firebaseAuth.getCurrentUser();
                 if (user == null) {
-                    Toast.makeText(getApplicationContext(), "Service is stopped", Toast.LENGTH_SHORT).show();
+                    //Toast.makeText(getApplicationContext(), "Service is stopped", Toast.LENGTH_SHORT).show();
                     Log.d("Guardian Service","service is stopping");
                     Guardian_Service.this.stopSelf();
                 }
@@ -219,6 +222,7 @@ public class Guardian_Service extends Service {
 
             int numFencesChecked = 0;
             int numFences = (int) fenceSnapshot.getChildrenCount();
+            String lastFence = childLastFence.get(childID);
 
             // check if the child is in any fence
             for(DataSnapshot snapshotFence : fenceSnapshot.getChildren() ) {
@@ -232,25 +236,15 @@ public class Guardian_Service extends Service {
 
                     // checks if the child is in a circle
                     if( distance[0] < fence.getRadius()  ){
-                        String message = "";
-                        Log.d("service", "I am inside fence");
 
-                        // creates a variable to add to database
-                        Db_notification dbNotification = new Db_notification();
-                        dbNotification.setStatus("Not read");
-                        dbNotification.setTitle(childUser.getFirstName() + " " + childUser.getLastName() + " has entered a zone");
+                        String message = "";
 
                         if(fence.getSafety() == 1) {
-                            // make noti that child is in circle
-                            Log.d("service", "I am inside safety zone");
                             message = childUser.getFirstName() + " " + childUser.getLastName() + " has entered " + fenceName + " safety zone. ";
                         } else {
-                            Log.d("service", "I am inside danger zone");
                             message = "DANGER!" + childUser.getFirstName() + " " + childUser.getLastName() + " has entered " + fenceName + " danger zone. ";
-//                                                final MediaPlayer mp = MediaPlayer.create(Guardian_Service.this, Settings.System.DEFAULT_ALARM_ALERT_URI);
                         }
 
-                        String lastFence = childLastFence.get(childID);
 
                         // checks if value is already set
                         // this is to prevent the notification from being alerted everytime
@@ -263,8 +257,13 @@ public class Guardian_Service extends Service {
                             createNotificationForGeoFences(fence, message);
                         }
 
-                        childLastFence.put(childID,fenceName);
+                        // creates a notification to add to database
+                        Db_notification dbNotification = new Db_notification();
+                        dbNotification.setStatus("Not read");
+                        dbNotification.setTitle(childUser.getFirstName() + " " + childUser.getLastName() + " has entered a zone");
 
+                        // update database
+                        childLastFence.put(childID,fenceName);
                         dbNotification.setContent(message);
                         String timestamp = String.valueOf(System.currentTimeMillis());
 
@@ -274,6 +273,35 @@ public class Guardian_Service extends Service {
                     }
                 } else {
 
+                    LatLng point = new LatLng(childPosLatitude,childPosLongitude);
+                    // check if child is in polygon
+                    if(isPointInPolygon(point)) {
+                        String message = "";
+
+                        if(lastFence != null && lastFence.equals(fenceName)) {
+                            Log.d(TAG, "User was already alerted");
+                            break;
+                        } else {
+                            if(fence.getSafety() == 1) { message = childUser.getFirstName() + " " + childUser.getLastName() + " has entered " + fenceName + " safety zone. ";
+                            } else {
+                                message = "DANGER!" + childUser.getFirstName() + " " + childUser.getLastName() + " has entered " + fenceName + " danger zone. ";
+                            }
+                            createNotificationForGeoFences(fence, message);
+                        }
+                        // creates a notification to add to database
+                        Db_notification dbNotification = new Db_notification();
+                        dbNotification.setStatus("Not read");
+                        dbNotification.setTitle(childUser.getFirstName() + " " + childUser.getLastName() + " has entered a zone");
+
+                        // update database
+                        childLastFence.put(childID,fenceName);
+                        dbNotification.setContent(message);
+                        String timestamp = String.valueOf(System.currentTimeMillis());
+
+                        // add notification item to guardian's database notifications
+                        mDatabase.child("users").child(currentUserID).child("notifications").child(timestamp).setValue(dbNotification);
+                        break;
+                    }
                 }
 
                 numFencesChecked++;
@@ -286,31 +314,9 @@ public class Guardian_Service extends Service {
             }
         }
 
-
-        if(childrenAlarms.get(childID) != null) {
-            for(DataSnapshot fence : fenceSnapshot.getChildren() ) {
-/*
-                Fence fence = fence.getValue(Db_fence.class);
-
-                Location.distanceBetween( childPosLatitude, childPosLongitude.longitude,
-                        fence.getLatitude(), fence.getLongitude(), distance);
-
-                if( distance[0] < fence.getRadius()  ){
-                    if(fence.getSafety() == 2) {
-                        // make noti that child is in circle
-                        Toast.makeText(getBaseContext(), "Inside", Toast.LENGTH_LONG).show();
-                    }
-                }
-
-                */
-            }
-        }
-        // check if there are any alarms that should be rung
-        /*
-        */
-
-
     }
+
+
 
     // creates a notification if the child has entered a geo fence
     // alerts if child enters a danger zone
@@ -366,7 +372,7 @@ public class Guardian_Service extends Service {
                 .setPriority(Notification.PRIORITY_MAX)
                 .build();
 
-        mDatabase.child("users").child(childID).child("SOS").setValue(false);
+        mDatabase.child("users").child(childID).child("sos").setValue(false);
         //startForeground(1337, notification);
         NotificationManager notifyMgr = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
         notifyMgr.notify(1340,notification);
@@ -376,6 +382,81 @@ public class Guardian_Service extends Service {
 
         // add notification item to guardian's database notifications
         mDatabase.child("users").child(currentUserID).child("notifications").child(timestamp).setValue(sosNotification);
+    }
+
+    public boolean isPointInPolygon(LatLng point) {
+
+        boolean flag = false;
+        for(DataSnapshot fenceSnap : fenceSnapshot.getChildren()) {
+            Db_fence fence = fenceSnap.getValue(Db_fence.class);
+            //Log.d("FenceNa");
+            if(fence.getType().equals("Polygon")) {
+                DataSnapshot latitudeSnapshot = fenceSnap.child("points").child("latitude");
+                DataSnapshot longitudeSnapshot = fenceSnap.child("points").child("longitude");
+                List<Double> listLatitudes = new ArrayList<Double>();
+                List<Double> listLongitudes = new ArrayList<Double>();
+
+                for(DataSnapshot d_latitude : latitudeSnapshot.getChildren()) {
+                    String latitude = d_latitude.getValue().toString();
+                    listLatitudes.add(Double.parseDouble(latitude));
+                    Log.d("Guardian",latitude);
+                }
+
+                for(DataSnapshot d_longitude : longitudeSnapshot.getChildren()) {
+                    String longitude = d_longitude.getValue().toString();
+                    Log.d("Fence", longitude);
+                    listLongitudes.add(Double.parseDouble(longitude));
+                }
+
+                List<LatLng> vertices = new ArrayList<LatLng>();
+
+                for(int x = 0 ;x < listLatitudes.size() - 1; x++) {
+                    Log.d("Fence",""+x);
+                    LatLng vertice = new LatLng(listLatitudes.get(x),listLongitudes.get(x));
+                    vertices.add(vertice);
+                }
+
+
+
+                int intersectCount = 0;
+
+                for (int j = 0; j < vertices.size() - 1; j++) {
+                    if (rayCastIntersect(point, vertices.get(j), vertices.get(j + 1))) {
+                        intersectCount++;
+                    }
+                }
+                // odd = inside, even = outside;
+                flag = ((intersectCount % 2) == 1);
+            }
+
+            if(flag == true) {
+                break;
+            }
+        }
+
+        return flag;
+    }
+
+    public boolean rayCastIntersect(LatLng tap, LatLng vertA, LatLng vertB) {
+
+        double aY = vertA.latitude;
+        double bY = vertB.latitude;
+        double aX = vertA.longitude;
+        double bX = vertB.longitude;
+        double pY = tap.latitude;
+        double pX = tap.longitude;
+
+        if ((aY > pY && bY > pY) || (aY < pY && bY < pY)
+                || (aX < pX && bX < pX)) {
+            return false; // a and b can't both be above or below pt.y, and a or
+            // b must be east of pt.x
+        }
+
+        double m = (aY - bY) / (aX - bX); // Rise over run
+        double bee = (-aX) * m + aY; // y = mx + b
+        double x = (pY - bee) / m; // algebra is neat!
+
+        return x > pX;
     }
 
     @Override

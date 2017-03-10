@@ -304,7 +304,6 @@ public class Child_ChildOverviewActivity extends FragmentActivity implements OnM
         users.child(currentUserID).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot snapshotCurrentUser) {
-                Log.d("Child overview", "I was run");
                 Db_user currentUser = snapshotCurrentUser.getValue(Db_user.class);
                 animateAndZoomToLocation(currentUser.getLastLatitude(),currentUser.getLastLongitude());
             }
@@ -331,7 +330,6 @@ public class Child_ChildOverviewActivity extends FragmentActivity implements OnM
                 Db_fence fence = fenceSnapshot.getValue(Db_fence.class);
 
                 String fenceName = fenceSnapshot.getKey();
-                Log.d("Fence",fenceName);
 
                 if(fence.getType().equals("Circle")) {
                     double fenceLatitude = fence.getLatitude();
@@ -374,14 +372,12 @@ public class Child_ChildOverviewActivity extends FragmentActivity implements OnM
                     }
                     for(DataSnapshot d_longitude : longitudeSnapshot.getChildren()) {
                         String longitude = d_longitude.getValue().toString();
-                        Log.d("Fence", longitude);
                         listLongitudes.add(Double.parseDouble(longitude));
                     }
 
                     PolygonOptions polygonoptions = new PolygonOptions();
 
                     for(int x = 0 ;x < listLatitudes.size() - 1; x++) {
-                        Log.d("Fence",""+x);
                         LatLng firstPoint = new LatLng(listLatitudes.get(x),listLongitudes.get(x));
                         LatLng secondPoint = new LatLng(listLatitudes.get(x + 1),listLongitudes.get(x + 1));
                         polygonoptions.add(firstPoint,secondPoint);

@@ -182,7 +182,13 @@ public class RegisterAccountActivity extends AppCompatActivity {
                 if(phone.isEmpty()) {
                     Toast.makeText(RegisterAccountActivity.this, "Phone number is empty.",Toast.LENGTH_SHORT).show();
                     return;
+
+                    // check if phone number has only numbers using regular expression
+                } else if(!phone.matches("[0-9]+")) {
+                    Toast.makeText(RegisterAccountActivity.this, "Phone number should only contain numbers.",Toast.LENGTH_SHORT).show();
+                    return;
                 }
+
 
                 if(password.isEmpty()) {
                     Toast.makeText(RegisterAccountActivity.this, "Password is empty.",Toast.LENGTH_SHORT).show();
