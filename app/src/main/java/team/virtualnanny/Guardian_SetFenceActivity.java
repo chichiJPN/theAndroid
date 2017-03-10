@@ -800,7 +800,7 @@ public class Guardian_SetFenceActivity extends AppCompatActivity implements OnMa
         });
 
 
-        LatLng upCebu = new LatLng(10.3226, 123.8986);
+        LatLng upCebu = new LatLng(10.3384, 123.9118);
 //        mMap.moveCamera(CameraUpdateFactory.newLatLng(upCebu));
         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(upCebu, 12.0f));
 

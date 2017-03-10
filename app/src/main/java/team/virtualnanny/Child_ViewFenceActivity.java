@@ -126,6 +126,10 @@ public class Child_ViewFenceActivity extends AppCompatActivity implements OnMapR
         mMap.setMyLocationEnabled(true);
         CameraUpdate zoom=CameraUpdateFactory.zoomTo(14);
         mMap.animateCamera(zoom);
+        LatLng upCebu = new LatLng(10.3384, 123.9118);
+//        mMap.moveCamera(CameraUpdateFactory.newLatLng(upCebu));
+        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(upCebu, 12.0f));
+
         mDatabase.child("users").child(mAuth.getCurrentUser().getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
 
             @Override

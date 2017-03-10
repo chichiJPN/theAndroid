@@ -274,8 +274,10 @@ public class Guardian_Service extends Service {
                 } else {
 
                     LatLng point = new LatLng(childPosLatitude,childPosLongitude);
+                    Log.d("Guardian", fenceName);
+
                     // check if child is in polygon
-                    if(isPointInPolygon(point)) {
+                    if(isPointInPolygon(point, fence, snapshotFence)) {
                         String message = "";
 
                         if(lastFence != null && lastFence.equals(fenceName)) {
@@ -384,57 +386,53 @@ public class Guardian_Service extends Service {
         mDatabase.child("users").child(currentUserID).child("notifications").child(timestamp).setValue(sosNotification);
     }
 
-    public boolean isPointInPolygon(LatLng point) {
+
+    
+    public boolean isPointInPolygon(LatLng point, Db_fence fence, DataSnapshot fenceSnap) {
 
         boolean flag = false;
-        for(DataSnapshot fenceSnap : fenceSnapshot.getChildren()) {
-            Db_fence fence = fenceSnap.getValue(Db_fence.class);
-            //Log.d("FenceNa");
-            if(fence.getType().equals("Polygon")) {
-                DataSnapshot latitudeSnapshot = fenceSnap.child("points").child("latitude");
-                DataSnapshot longitudeSnapshot = fenceSnap.child("points").child("longitude");
-                List<Double> listLatitudes = new ArrayList<Double>();
-                List<Double> listLongitudes = new ArrayList<Double>();
+        Log.d("child point",point.toString());
 
-                for(DataSnapshot d_latitude : latitudeSnapshot.getChildren()) {
-                    String latitude = d_latitude.getValue().toString();
-                    listLatitudes.add(Double.parseDouble(latitude));
-                    Log.d("Guardian",latitude);
-                }
+        Log.d("Fence name", fenceSnap.getKey().toString());
 
-                for(DataSnapshot d_longitude : longitudeSnapshot.getChildren()) {
-                    String longitude = d_longitude.getValue().toString();
-                    Log.d("Fence", longitude);
-                    listLongitudes.add(Double.parseDouble(longitude));
-                }
+        DataSnapshot latitudeSnapshot = fenceSnap.child("points").child("latitude");
+        DataSnapshot longitudeSnapshot = fenceSnap.child("points").child("longitude");
+        List<Double> listLatitudes = new ArrayList<Double>();
+        List<Double> listLongitudes = new ArrayList<Double>();
 
-                List<LatLng> vertices = new ArrayList<LatLng>();
-
-                for(int x = 0 ;x < listLatitudes.size() - 1; x++) {
-                    Log.d("Fence",""+x);
-                    LatLng vertice = new LatLng(listLatitudes.get(x),listLongitudes.get(x));
-                    vertices.add(vertice);
-                }
-
-
-
-                int intersectCount = 0;
-
-                for (int j = 0; j < vertices.size() - 1; j++) {
-                    if (rayCastIntersect(point, vertices.get(j), vertices.get(j + 1))) {
-                        intersectCount++;
-                    }
-                }
-                // odd = inside, even = outside;
-                flag = ((intersectCount % 2) == 1);
-            }
-
-            if(flag == true) {
-                break;
-            }
+        for(DataSnapshot d_latitude : latitudeSnapshot.getChildren()) {
+            String latitude = d_latitude.getValue().toString();
+            listLatitudes.add(Double.parseDouble(latitude));
         }
 
-        return flag;
+        for(DataSnapshot d_longitude : longitudeSnapshot.getChildren()) {
+            String longitude = d_longitude.getValue().toString();
+            listLongitudes.add(Double.parseDouble(longitude));
+        }
+
+        List<LatLng> vertices = new ArrayList<LatLng>();
+
+        for(int x = 0 ;x < listLatitudes.size(); x++) {
+            LatLng vertice = new LatLng(listLatitudes.get(x),listLongitudes.get(x));
+            vertices.add(vertice);
+            Log.d("coordinates",vertice.toString());
+        }
+
+        // http://stackoverflow.com/questions/217578/how-can-i-determine-whether-a-2d-point-is-within-a-polygon
+        int i, j;
+        boolean c = false;
+        int nvert = vertices.size();
+        double testy = point.latitude;
+        double testx = point.longitude;
+        for (i = 0, j = nvert-1; i < nvert; j = i++) {
+            if ( ((vertices.get(i).latitude >testy) != (vertices.get(j).latitude>testy)) &&
+                (testx < (vertices.get(j).longitude - vertices.get(i).longitude) *
+                        (testy-vertices.get(i).latitude) / (vertices.get(j).latitude -vertices.get(i).latitude) + vertices.get(i).longitude) )
+            c = !c;
+        }
+
+        return c;
+
     }
 
     public boolean rayCastIntersect(LatLng tap, LatLng vertA, LatLng vertB) {

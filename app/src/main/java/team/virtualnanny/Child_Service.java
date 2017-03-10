@@ -383,7 +383,4 @@ public class Child_Service extends Service {
         @Override
         public void onProviderDisabled(String s) {}
     }
-
-    // this is asynctask
-
 }

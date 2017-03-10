@@ -138,6 +138,7 @@
                 android:layout_width="0dp"
                 android:layout_height="fill_parent"
                 android:gravity="center_horizontal"
+                android:visibility="invisible"
                 android:text="324\nKph"
                 android:textSize="15sp"
                 android:layout_weight="2"

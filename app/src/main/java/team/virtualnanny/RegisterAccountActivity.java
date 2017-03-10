@@ -70,8 +70,8 @@ public class RegisterAccountActivity extends AppCompatActivity {
                     progress.show();
 
                     if(email != null) {
-                        double lastLatitude = 10.2972; // UC coordinates
-                        double lastLongitude = 123.8950; // UC coordinates
+                        double lastLatitude = 10.3384; // UC coordinates
+                        double lastLongitude = 123.9118; // UC coordinates
                         int numSteps = 0;
                         boolean remoteLock = false;
                         boolean remoteTracking = true;
